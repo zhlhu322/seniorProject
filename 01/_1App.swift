@@ -11,7 +11,7 @@ import SwiftUI
 struct _1App: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Workout_page()
         }
     }
 }
