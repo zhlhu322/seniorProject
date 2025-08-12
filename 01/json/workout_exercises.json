@@ -1,0 +1,166 @@
+{
+    "exercises": [
+        {
+            "id": "1",
+            "name": "手臂彎舉",
+            "image_name": "curl",
+            "target_muscle": "二頭肌",
+            "equipment": "彈力帶/水瓶",
+            "type": "動態 計次",
+            "band_position": "手腕",
+            "steps": [
+                "站立姿勢，雙腳與肩同寬，手持彈力帶或水瓶，手臂自然下垂。",
+                "保持上臂固定，彎曲肘部，將負重向上拉至肩部附近。",
+                "緩慢放下回到起始位置，完成一個完整動作。"
+            ],
+            "strength":2,
+            "endurance":1
+
+        },
+        {
+            "id": "2",
+            "name": "肩推",
+            "image_name": "shoulder_press",
+            "target_muscle": "肩膀",
+            "equipment": "彈力帶/水瓶",
+            "type": "動態 計次",
+            "band_position": "手腕",
+            "steps": [
+                "站立或坐姿，雙手持器材於肩部高度。",
+                "用力向上推舉至手臂伸直，再緩慢放下回肩部。"
+            ],
+            "strength":2,
+            "endurance":1,
+            "flexibility":1
+        },
+        {
+            "id": "3",
+            "name": "手臂伸展",
+            "image_name": "elbow_extension",
+            "target_muscle": "三頭肌",
+            "equipment": "彈力帶/水瓶",
+            "type": "動態 計次",
+            "band_position": "手腕",
+            "steps": [
+                "站或坐，雙手持器材置於頭後（肘部向上）。",
+                "伸直手臂舉起器材，再控制放下。"
+            ],
+            "strength":2,
+            "endurance":0,
+            "flexibility":2
+        },
+        {
+            "id": "4",
+            "name": "胸推",
+            "image_name": "chest_press",
+            "target_muscle": "胸肌",
+            "equipment": "彈力帶/水瓶",
+            "type": "動態 計次",
+            "band_position": "手腕",
+            "steps": [
+                "平躺或站立，雙手持器材於胸前。",
+                "用力向前推至手臂伸直，然後慢慢還原。"
+            ],
+            "strength":3,
+            "endurance":1,
+            "flexibility":0
+        },
+        {
+            "id": "5",
+            "name": "坐姿划船",
+            "image_name": "",
+            "target_muscle": "背肌",
+            "equipment": "彈力帶",
+            "type": "動態 計次",
+            "band_position": "手腕",
+            "steps": [
+                "坐姿，雙腳固定，手握彈力帶兩端。",
+                "向後拉緊帶至胸側，再慢慢放鬆。"
+            ],
+            "strength":3,
+            "endurance":1,
+            "flexibility":0
+        },
+        {
+            "id": "6",
+            "name": "超人",
+            "image_name": "",
+            "target_muscle": "上背核心（豎脊肌群、臀大肌）",
+            "equipment": "X",
+            "type": "靜態 計時",
+            "band_position": "X",
+            "steps": [
+                "面朝下趴，雙臂雙腿伸直。",
+                "同時抬起手臂與腿部，保持幾秒後放下。"
+            ],
+            "strength":1,
+            "endurance":2,
+            "flexibility":1
+        },
+        {
+            "id": "7",
+            "name": "太空椅深蹲",
+            "image_name": "臀腿（股四頭肌、臀大肌）",
+            "target_muscle": "",
+            "equipment": "X",
+            "type": "靜態 計時",
+            "band_position": "X",
+            "steps": [
+                "背靠牆，雙腳與肩同寬並向前伸。",
+                "屈膝 90°，如坐在無形椅上，保持穩定。"
+            ],
+            "strength":2,
+            "endurance":3,
+            "flexibility":0
+        },
+        {
+            "id": "8",
+            "name": "側躺抬腿",
+            "image_name": "",
+            "target_muscle": "臀腿 (側臀)",
+            "equipment": "X",
+            "type": "動態 計次",
+            "band_position": "腳踝",
+            "steps": [
+                "側躺，頭部靠手支撐，雙腿伸直。",
+                "抬起上側腿至最高，放下還原。"
+            ],
+            "strength":1,
+            "endurance":2,
+            "flexibility":1
+        },
+        {
+            "id": "9",
+            "name": "棒式",
+            "image_name": "",
+            "target_muscle": "腹肌",
+            "equipment": "X",
+            "type": "靜態 計時",
+            "band_position": "X",
+            "steps": [
+                "面朝下，用前臂和腳尖撐起身體。",
+                "保持身體為一條直線，收緊核心。"
+            ],
+            "strength":1,
+            "endurance":3,
+            "flexibility":0
+        },
+        {
+            "id": "10",
+            "name": "側棒式",
+            "image_name": "",
+            "target_muscle": "腹肌",
+            "equipment": "X",
+            "type": "靜態 計時",
+            "band_position": "X",
+            "steps": [
+                "側臥，用前臂與同側腳撐起身體。",
+                "保持身體一直線，核心用力。",
+                "維持這個姿勢，感受側腹肌肉的收縮。"
+            ],
+            "strength":1,
+            "endurance":3,
+            "flexibility":0
+        }
+    ]
+} 

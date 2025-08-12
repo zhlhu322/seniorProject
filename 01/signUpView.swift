@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct loginView: View {
+struct signUpView: View {
     
     @State var name:String = ""
     @State var mail:String = ""
@@ -20,10 +20,10 @@ struct loginView: View {
             Color(.darkBackground).ignoresSafeArea()
             
             Text("建立帳戶")
-                .font(.title)
+                .font(.largeTitle)
                 .foregroundStyle(Color(.mint))
                 .padding(.bottom,25)
-                .padding(.horizontal,20)
+                .padding(.horizontal,30)
         }
         .frame(maxWidth: .infinity)
         .frame(height:200)
@@ -65,24 +65,26 @@ struct loginView: View {
             .cornerRadius(10)
             
             
-            Button("登入"){
-                
+            Button("註冊") {
+                // 點擊事件
             }
-            .frame(width:350,height:60)
-            .foregroundStyle(Color(.white))
+            .frame(width: 340, height: 60)
+            .foregroundStyle(Color.white)
             .background(Color(.primary))
             .cornerRadius(20)
-            .padding(.top,50)
+            .padding(.top, 50)
+            .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
             
             Spacer()
             
         }
-        .ignoresSafeArea()
         .frame(maxWidth:.infinity,maxHeight:.infinity)
         .padding(.top,50)
         .background(Color(.mint))
+        .ignoresSafeArea()
+        .navigationBarBackButtonHidden(true)
         
-        Spacer()
+        
     }
 }
 
