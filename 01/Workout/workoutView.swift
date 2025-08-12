@@ -15,8 +15,8 @@ struct workoutView: View {
     let setIndex: Int
     @EnvironmentObject var bluetoothManager: BluetoothManager
 
-    var currentExercise: Exercise {
-        plan.exercises[exerciseIndex]
+    var currentExercise: PlanDetails {
+        plan.details[exerciseIndex]
     }
 
     var body: some View {
@@ -49,7 +49,7 @@ struct workoutView: View {
                     .foregroundColor(Color(.white))
                     .font(.system(size: 20))
                 LottieView {
-                    await LottieAnimation.loadedFrom(url: URL(string: currentExercise.lottie_url)! )
+                    await LottieAnimation.loadedFrom(url: URL(string: "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json")! )
                 }
                 .playing(loopMode:.loop)
                 .resizable()
@@ -77,7 +77,7 @@ struct workoutView: View {
                 if nextSet < currentExercise.sets {
                     // 還有下一組，進入 rest
                     path.append(.rest(plan: plan, exerciseIndex: exerciseIndex, setIndex: nextSet))
-                } else if exerciseIndex + 1 < plan.exercises.count {
+                } else if exerciseIndex + 1 < plan.details.count {
                     // 換下一個動作
                     path.append(.rest(plan: plan, exerciseIndex: exerciseIndex + 1, setIndex: 0))
                 } else {
@@ -89,13 +89,13 @@ struct workoutView: View {
     }
 }
 
-#Preview {
-    let sampleExercises = [
-        Exercise(id: "elbow_extension", name:"手臂伸展", sets: 3, targetCount: 15, targetTime: nil, rest_seconds: 30,lottie_url:"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"),
-        Exercise(id: "squat", name:"深蹲", sets: 2, targetCount: 20, targetTime: nil, rest_seconds: 45,lottie_url:"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json")
-    ]
-    let samplePlan = WorkoutPlan(name: "上肢訓練", exercises: sampleExercises)
-    
-    workoutView(path: .constant([]), plan: samplePlan, exerciseIndex: 1, setIndex: 0)
-        .environmentObject(BluetoothManager())
-}
+//#Preview {
+//    let sampleExercises = [
+//        Exercise(id: "elbow_extension", name:"手臂伸展", sets: 3, targetCount: 15, targetTime: nil, rest_seconds: 30,lottie_url:"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"),
+//        Exercise(id: "squat", name:"深蹲", sets: 2, targetCount: 20, targetTime: nil, rest_seconds: 45,lottie_url:"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json")
+//    ]
+//    let samplePlan = WorkoutPlan(name: "上肢訓練", exercises: sampleExercises)
+//    
+//    workoutView(path: .constant([]), plan: samplePlan, exerciseIndex: 1, setIndex: 0)
+//        .environmentObject(BluetoothManager())
+//}

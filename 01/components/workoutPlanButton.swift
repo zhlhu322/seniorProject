@@ -25,7 +25,7 @@ struct workoutPlanButton: View {
             .buttonStyle(PlainButtonStyle())
         }
         .padding(.horizontal, 20)
-        .frame(width: 340, height: 80)
+        .frame(width: 300, height: 100)
         .background(isSelected ? Color.accentColor : Color(.primary))
         .cornerRadius(20)
         .overlay(

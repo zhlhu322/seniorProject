@@ -46,7 +46,7 @@ struct restView: View {
             }
             .padding(.bottom,80)
             .onAppear {
-                timeRemaining = plan.exercises[exerciseIndex].rest_seconds
+                timeRemaining = plan.details[exerciseIndex].rest_seconds
                 Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
                     if timeRemaining > 0 {
                         timeRemaining -= 1

@@ -1,0 +1,46 @@
+{
+  "workout_sets": [
+      {
+        "name": "test訓練",
+        "details": [
+          { "id": "1", "name": "手臂彎舉","sets": 1,"targetCount":3, "rest_seconds": 5 },
+          { "id": "2", "name": "肩推","sets": 2,"targetCount":3, "rest_seconds": 5 },
+          { "id": "3", "name": "手臂伸展","sets": 1,"targetCount":5, "rest_seconds": 3 },
+          { "id": "4", "name": "胸推","sets": 1,"targetCount":3, "rest_seconds": 7 }
+        ]
+      },
+    {
+      "name": "上肢訓練",
+      "details": [
+        { "id": "1", "name": "手臂彎舉","sets": 1,"targetCount":15, "rest_seconds": 15 },
+        { "id": "2", "name": "肩推","sets": 1,"targetCount":15, "rest_seconds": 15 },
+        { "id": "3", "name": "手臂伸展","sets": 2,"targetCount":15, "rest_seconds": 15 },
+        { "id": "4", "name": "胸推","sets": 3,"targetCount":15, "rest_seconds": 15 }
+      ]
+    },
+    {
+      "name": "下肢訓練",
+      "details": [
+        { "id": "7","name": "太空椅深蹲", "sets": 1,"targetTime":60, "rest_seconds": 15 },
+        { "id": "8", "name": "側躺抬腿","sets": 1,"targetCount":15, "rest_seconds": 15 }
+      ]
+    },
+    {
+      "name": "核心訓練",
+      "details": [
+        { "id": "6", "name": "超人","sets": 3, "rest_seconds": 60 },
+        { "id": "9", "name": "棒式","sets": 3, "rest_seconds": 60 },
+        { "id": "10", "name": "側棒式","sets": 3, "rest_seconds": 60 }
+      ]
+    },
+    {
+      "name": "全身訓練",
+      "details": [
+        { "id": "1","name": "手臂彎舉", "sets": 2, "rest_seconds": 60 },
+        { "id": "4", "name": "胸推", "sets": 2, "rest_seconds": 60 },
+        { "id": "7", "name": "太空椅深蹲", "sets": 2, "rest_seconds": 60 },
+        { "id": "9", "name": "棒式", "sets": 2, "rest_seconds": 60 }
+      ]
+    }
+  ]
+} 
