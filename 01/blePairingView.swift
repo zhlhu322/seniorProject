@@ -18,12 +18,19 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var connectionStatus: ConnectionStatus = .disconnected
     @Published var isCorrectDevice = false
     @Published var currentCount: Int = 0
+    @Published var isDeviceReady = false  // 新增：裝置是否準備好
+    
     var actionTypeCharacteristic: CBCharacteristic?
     var receiveCharacteristic: CBCharacteristic?
     
     // 目標裝置名稱關鍵字
     private let targetDeviceName = "micro:bit"
     private let targetCount: Int = 10 // 目標次數
+    
+    // 定義 Service 和 Characteristic UUIDs
+    private let serviceUUID = CBUUID(string: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
+    private let rxCharacteristicUUID = CBUUID(string: "6E400002-B5A3-F393-E0A9-E50E24DCCA9E")  // 接收
+    private let txCharacteristicUUID = CBUUID(string: "6E400003-B5A3-F393-E0A9-E50E24DCCA9E")  // 傳送
     
     enum ConnectionStatus {
         case disconnected
@@ -35,40 +42,30 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     
     override init() {
         super.init()
-        centralManager = CBCentralManager(delegate: self, queue: nil)
+        centralManager = CBCentralManager(delegate: self, queue: DispatchQueue.main)  // 使用主線程
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        switch central.state {
-        case .poweredOn:
-            isBluetoothEnabled = true
-            // 當藍牙開啟時，檢查已連接的裝置
-            checkConnectedDevices()
-            startScanning()
-        case .poweredOff:
-            isBluetoothEnabled = false
-            connectionStatus = .disconnected
-        case .unauthorized:
-            isBluetoothEnabled = false
-            connectionStatus = .disconnected
-        case .unsupported:
-            isBluetoothEnabled = false
-            connectionStatus = .disconnected
-        case .resetting:
-            isBluetoothEnabled = false
-            connectionStatus = .disconnected
-        case .unknown:
-            isBluetoothEnabled = false
-            connectionStatus = .disconnected
-        @unknown default:
-            isBluetoothEnabled = false
-            connectionStatus = .disconnected
+        DispatchQueue.main.async {
+            switch central.state {
+            case .poweredOn:
+                self.isBluetoothEnabled = true
+                self.checkConnectedDevices()
+                self.startScanning()
+            case .poweredOff, .unauthorized, .unsupported, .resetting, .unknown:
+                self.isBluetoothEnabled = false
+                self.connectionStatus = .disconnected
+                self.isDeviceReady = false
+            @unknown default:
+                self.isBluetoothEnabled = false
+                self.connectionStatus = .disconnected
+                self.isDeviceReady = false
+            }
         }
     }
     
-    // 新增：檢查已連接的裝置
     func checkConnectedDevices() {
-        let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [CBUUID(string: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E")])
+        let connectedPeripherals = centralManager.retrieveConnectedPeripherals(withServices: [serviceUUID])
         
         for peripheral in connectedPeripherals {
             print("發現已連接的裝置: \(peripheral.name ?? "Unknown")")
@@ -78,22 +75,23 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             }
         }
     }
-
     
     func startScanning() {
         if isBluetoothEnabled {
-            let serviceUUID = CBUUID(string: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E")
-            centralManager.scanForPeripherals(withServices: [serviceUUID])
+            print("🔍 開始掃描裝置...")
+            centralManager.scanForPeripherals(withServices: [serviceUUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
         }
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         print("發現裝置: \(peripheral.name ?? "Unknown")")
         print("裝置 UUID: \(peripheral.identifier.uuidString)")
+        print("RSSI: \(RSSI)")
         
         // 如果發現目標裝置，立即嘗試連接
         if let deviceName = peripheral.name, deviceName.contains(targetDeviceName) {
             print("找到目標裝置，嘗試連接")
+            centralManager.stopScan()  // 停止掃描
             connect(to: peripheral)
         }
         
@@ -102,52 +100,66 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         }
     }
     
-
     func connect(to peripheral: CBPeripheral) {
         print("開始連接裝置: \(peripheral.name ?? "Unknown")")
         connectionStatus = .connecting
-
+        isDeviceReady = false
+        
         peripheral.delegate = self
-        connectedDevice = peripheral // 保留 reference，避免系統釋放
-
-        centralManager.connect(peripheral, options: nil)
+        connectedDevice = peripheral
+        
+        centralManager.connect(peripheral, options: [
+            CBConnectPeripheralOptionNotifyOnConnectionKey: true,
+            CBConnectPeripheralOptionNotifyOnDisconnectionKey: true
+        ])
     }
-
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         print("已連接到裝置: \(peripheral.name ?? "Unknown")")
         print("裝置 UUID: \(peripheral.identifier.uuidString)")
         
-        // 檢查是否為正確的裝置
-        if let deviceName = peripheral.name, deviceName.contains(targetDeviceName) {
-            print("確認是目標裝置")
-            isCorrectDevice = true
-            connectedDevice = peripheral
-            connectionStatus = .connected
-            // 停止掃描
-            centralManager.stopScan()
-            // 開始發現服務
-            peripheral.discoverServices(nil)
-        } else {
-            print("不是目標裝置")
-            isCorrectDevice = false
-            connectionStatus = .wrongDevice
-            // 斷開錯誤的裝置
-            centralManager.cancelPeripheralConnection(peripheral)
+        DispatchQueue.main.async {
+            if let deviceName = peripheral.name, deviceName.contains(self.targetDeviceName) {
+                print("確認是目標裝置")
+                self.isCorrectDevice = true
+                self.connectedDevice = peripheral
+                self.connectionStatus = .connected
+                
+                // 開始發現服務
+                peripheral.discoverServices([self.serviceUUID])
+            } else {
+                print("不是目標裝置")
+                self.isCorrectDevice = false
+                self.connectionStatus = .wrongDevice
+                central.cancelPeripheralConnection(peripheral)
+            }
         }
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        connectionStatus = .failed
-        print("連接失敗: \(error?.localizedDescription ?? "未知錯誤")")
+        DispatchQueue.main.async {
+            self.connectionStatus = .failed
+            self.isDeviceReady = false
+            print("連接失敗: \(error?.localizedDescription ?? "未知錯誤")")
+        }
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        connectionStatus = .disconnected
-        connectedDevice = nil
-        isCorrectDevice = false
-        // 重新開始掃描
-        startScanning()
+        DispatchQueue.main.async {
+            self.connectionStatus = .disconnected
+            self.connectedDevice = nil
+            self.isCorrectDevice = false
+            self.isDeviceReady = false
+            
+            if let error = error {
+                print("裝置斷開連接，錯誤: \(error.localizedDescription)")
+            } else {
+                print("裝置正常斷開連接")
+            }
+            
+            // 重新開始掃描
+            self.startScanning()
+        }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
@@ -165,7 +177,10 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         
         for service in services {
             print("🔍 服務 UUID: \(service.uuid)")
-            peripheral.discoverCharacteristics(nil, for: service)
+            if service.uuid == serviceUUID {
+                print("✅ 找到目標服務，開始發現特徵...")
+                peripheral.discoverCharacteristics([rxCharacteristicUUID, txCharacteristicUUID], for: service)
+            }
         }
     }
     
@@ -180,102 +195,213 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             return
         }
         
-        print("📱 發現 \(characteristics.count) 個特徵")
+        print("📱 在服務 \(service.uuid) 中發現 \(characteristics.count) 個特徵")
+        
+        var foundRx = false
+        var foundTx = false
         
         for characteristic in characteristics {
-            // 印出 characteristic 詳細資訊
             print("🔍 特徵 UUID: \(characteristic.uuid)")
-            print("📊 特徵屬性: \(characteristic.properties)")
-            print("📊 是否可通知: \(characteristic.properties.contains(.notify))")
-            print("📊 是否可指示: \(characteristic.properties.contains(.indicate))")
-            print("📊 是否可讀: \(characteristic.properties.contains(.read))")
-            print("📊 是否可寫: \(characteristic.properties.contains(.write))")
+            print("📊 特徵屬性: \(characteristic.properties.rawValue)")
             
-            // 根據 UUID 判斷是哪一個 Characteristic
-            if characteristic.uuid == CBUUID(string: "6E400003-B5A3-F393-E0A9-E50E24DCCA9E") {
-                actionTypeCharacteristic = characteristic
-                print("✅ ActionType characteristic set.")
-            } else if characteristic.uuid == CBUUID(string: "6E400002-B5A3-F393-E0A9-E50E24DCCA9E") {
+            if characteristic.uuid == rxCharacteristicUUID {
                 receiveCharacteristic = characteristic
-                print("✅ Receive characteristic set.")
-                // 訂閱 indicate 特徵
-                print("📡 嘗試訂閱通知...")
-                peripheral.setNotifyValue(true, for: characteristic)
-            }
-            
-            // 確保在主線程更新 UI
-            DispatchQueue.main.async {
-                self.isCorrectDevice = true
-                self.connectionStatus = .connected
+                print("✅ 找到接收特徵 (RX)")
+                
+                if characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate) {
+                    print("📡 嘗試訂閱通知...")
+                    peripheral.setNotifyValue(true, for: characteristic)
+                    foundRx = true
+                } else {
+                    print("⚠️ 接收特徵不支援通知")
+                }
+                
+            } else if characteristic.uuid == txCharacteristicUUID {
+                actionTypeCharacteristic = characteristic
+                print("✅ 找到傳送特徵 (TX)")
+                foundTx = true
             }
         }
+        
+        // 當兩個特徵都找到時，標記裝置準備好
+        if foundRx && foundTx {
+            DispatchQueue.main.async {
+                print("🎉 所有特徵都已設置完成")
+                // 先不要立即設為 ready，等收到通知訂閱確認
+            }
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            print("⚠️ 設置通知狀態失敗: \(error.localizedDescription)")
+            return
+        }
+        
+        if characteristic.uuid == rxCharacteristicUUID {
+            DispatchQueue.main.async {
+                if characteristic.isNotifying {
+                    print("✅ 成功訂閱通知，裝置準備完成")
+                    self.isDeviceReady = true
+                    
+                    // 可選：發送一個測試訊息確認連接
+                    self.sendConnectionTest()
+                } else {
+                    print("❌ 通知訂閱失敗")
+                    self.isDeviceReady = false
+                }
+            }
+        }
+    }
+    
+    // 新增：發送連接測試
+    func sendConnectionTest() {
+        print("📤 發送連接測試訊息")
+        let testMessage = "ping".data(using: .utf8)!
+        //sendData(testMessage)
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
-            print("❌ 接收數據錯誤: \(error.localizedDescription)")
+            print("⚠️ 接收資料錯誤: \(error.localizedDescription)")
             return
         }
         
-        if characteristic == receiveCharacteristic {
-            guard let data = characteristic.value else {
-                print("❌ 接收到的數據為空")
-                return
+        print("📱 收到資料的 Characteristic UUID: \(characteristic.uuid)")
+        
+        guard characteristic.uuid == rxCharacteristicUUID else {
+            print("⚠️ 不是預期的 characteristic，忽略")
+            return
+        }
+        
+        guard let data = characteristic.value else {
+            print("⚠️ 接收到的資料為空")
+            return
+        }
+        
+        print("📥 收到原始資料: \(data as NSData)")
+        print("📥 資料長度: \(data.count) bytes")
+        print("📥 十六進制: \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
+        
+        // 嘗試多種編碼方式解析字串
+        var receivedString: String?
+        
+        // 1. 嘗試 UTF-8
+        if let utf8String = String(data: data, encoding: .utf8) {
+            receivedString = utf8String.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("📥 UTF-8 解析: '\(receivedString!)'")
+        }
+        // 2. 嘗試 ASCII
+        else if let asciiString = String(data: data, encoding: .ascii) {
+            receivedString = asciiString.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("📥 ASCII 解析: '\(receivedString!)'")
+        }
+        // 3. 嘗試 ISO Latin 1
+        else if let latin1String = String(data: data, encoding: .isoLatin1) {
+            receivedString = latin1String.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("📥 ISO Latin 1 解析: '\(receivedString!)'")
+        }
+        
+        if let message = receivedString {
+            handleReceivedMessage(message)
+        } else {
+            // 如果無法解析為字串，檢查是否為數字
+            handleReceivedData(data)
+        }
+    }
+    
+    // 處理接收到的文字訊息
+    private func handleReceivedMessage(_ message: String) {
+        print("📨 處理訊息: '\(message)'")
+        
+        DispatchQueue.main.async {
+            switch message.lowercased() {
+            case "connected":
+                print("✅ 收到連接確認")
+                self.isDeviceReady = true
+                
+            case "end":
+                print("✅ 收到結束確認")
+                // 處理結束邏輯
+                
+            default:
+                print("📥 收到未知訊息: '\(message)'")
+                
+                // 檢查是否為數字字串
+                if let count = Int(message) {
+                    self.currentCount = count
+                    print("📊 更新計數: \(count)")
+                }
             }
+        }
+    }
+    
+    // 處理接收到的原始資料
+    private func handleReceivedData(_ data: Data) {
+        print("🔍 處理原始資料")
+        
+        if data.count == 1 {
+            let byte = data.first!
+            print("📊 收到單一 byte: \(byte) (0x\(String(byte, radix: 16)))")
             
-            print("📥 收到原始數據: \(data as NSData)")
-            print("📥 數據長度: \(data.count) bytes")
-            
-            // 解析單一 byte 的數據
-            if data.count == 1 {
-                let byte = data.first!
-                let count = Int(byte) - 48  // 將 ASCII 轉換為數字 (0x30 = '0' 的 ASCII 碼)
+            // 檢查是否為 ASCII 數字
+            if byte >= 48 && byte <= 57 {
+                let count = Int(byte) - 48
                 DispatchQueue.main.async {
                     self.currentCount = count
-                    print("📊 解析後的次數: \(self.currentCount)")
+                    print("📊 解析後的計數: \(self.currentCount)")
                 }
-            } else {
-                print("⚠️ 數據格式不正確")
             }
         }
     }
     
-    // 添加 indicate 確認回調
-    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
-        if let error = error {
-            print("❌ 設置通知狀態失敗: \(error.localizedDescription)")
+    // 發送資料的通用方法
+    func sendData(_ dataa: Data) {
+        guard let peripheral = connectedDevice,
+              let characteristic = actionTypeCharacteristic else {
+            print("⚠️ 裝置或特徵未準備好")
             return
         }
         
-        if characteristic == receiveCharacteristic {
-            print("✅ 成功設置通知狀態")
-            print("📊 通知是否啟用: \(characteristic.isNotifying)")
-        }
+        let bytes: [UInt8] = [0x31, 0x0A]
+        let data = Data(bytes)
+        print("📤 發送資料 (\(bytes.count) bytes): \(bytes.map { String(format: "%02X", $0) }.joined(separator: " "))")
+        print("dataa count: \(dataa.count)")
+        print("dataa hex: \(dataa.map { String(format: "%02X", $0) }.joined(separator: " "))")
+        print("data count: \(data.count)")
+        print("data hex: \(data.map { String(format: "%02X", $0) }.joined(separator: " "))")
+        peripheral.writeValue(dataa, for: characteristic, type: .withResponse)
     }
     
-    func sendActionType(_ action: String, count: UInt32) {
-        guard let peripheral = connectedDevice else {
-            print("❌ 尚未連接到裝置 (connectedDevice 為 nil)")
+    func sendActionType(_ str: String) {
+        guard isDeviceReady else {
+            print("⚠️ 裝置尚未準備好，無法發送")
             return
         }
-
-        guard let characteristic = actionTypeCharacteristic else {
-            print("❌ 尚未找到 characteristic (actionTypeCharacteristic 為 nil)")
-            return
-        }
-
-        guard let actionData = action.data(using: .utf8) else {
-            print("❌ 無法將 action 字串轉換為資料 (actionData 為 nil)")
-            return
-        }
-    
-        var countValue = count.littleEndian
-        let countData = Data(bytes: &countValue, count: MemoryLayout<UInt32>.size)
-    
-        let combinedData = actionData + countData
-        peripheral.writeValue(combinedData, for: characteristic, type: .withResponse)
         
-        print("📤 傳送動作類型'\(action)'成功")
+        var transformed: [UInt8] = []
+        for s in str.utf8 {   // 直接拿 UTF8 編碼值
+            transformed.append(s)
+        }
+        transformed.append(0x0A)  // 加上換行符號
+        
+        let data = Data(transformed)
+        sendData(data)
+        
+        print("📤 發送動作類型(轉換後): \(transformed.map { String(format: "%02X", $0) }.joined(separator: " "))")
+    }
+
+
+
+    
+    // 發送字串訊息
+    func sendMessage(_ message: String) {
+        guard let data = message.data(using: .utf8) else {
+            print("⚠️ 無法將訊息轉換為資料")
+            return
+        }
+        sendData(data)
+        print("📤 發送訊息: '\(message)'")
     }
 }
 
@@ -283,10 +409,18 @@ struct blePairingView: View {
     @Binding var path: [PlanRoute]
     let plan: WorkoutPlan
     @EnvironmentObject var bluetoothManager: BluetoothManager
+    
 
+    init(path: Binding<[PlanRoute]>, plan: WorkoutPlan) {
+            self._path = path
+            self.plan = plan
+            print("workoutPlan: \(plan)")
+    }
+    
     var body: some View {
         VStack {
-            if bluetoothManager.connectionStatus == .connected && bluetoothManager.isCorrectDevice {
+            if bluetoothManager.connectionStatus == .connected && bluetoothManager.isCorrectDevice &&
+                bluetoothManager.isDeviceReady{
                 // 連接成功後自動跳轉
                 WaitingView(path: $path, plan: plan)
                     .environmentObject(bluetoothManager)
@@ -409,13 +543,20 @@ struct WaitingView: View {
         .ignoresSafeArea()
         .frame(maxWidth:.infinity,maxHeight: .infinity)
         .background(Color.brown)
+        .onAppear {
+            let idString = plan.details[0].id   // "1"
+            bluetoothManager.sendActionType(idString)
+        }
         .onReceive(timer) { _ in
             if timeRemaining > 0 {
                 timeRemaining -= 1
             } else if !hasSentAction {
-                bluetoothManager.sendActionType("1", count: 10)
+                let idString = plan.details[0].id   // "1"
+                if let idInt = Int(idString) {
+                    print("sending\(Int(idString))")
+                    path.append(.workout(plan: plan, exerciseIndex: 0, setIndex: 0))
+                }
                 hasSentAction = true
-                path.append(.workout(plan: plan, exerciseIndex: 0, setIndex: 0))
             }
         }
     }
@@ -427,5 +568,4 @@ struct WaitingView: View {
 //    blePairingView(path: .constant([]))
 //        .environmentObject(BluetoothManager())
 //}
-
 

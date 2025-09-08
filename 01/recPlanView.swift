@@ -88,6 +88,7 @@ struct recPlanView: View {
                 
                 Button(action: {
                      if let plan = selectedPlan {
+                        /*choose the plan and give it to device(go pairing first if not)*/
                         path.append(.blePairing(plan: plan))
                     }
                 }) {

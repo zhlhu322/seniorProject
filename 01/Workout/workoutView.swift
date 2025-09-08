@@ -71,15 +71,18 @@ struct workoutView: View {
         }
         .onChange(of: bluetoothManager.currentCount) { newCount in
             if newCount >= (currentExercise.targetCount ?? 1) {
-                bluetoothManager.sendActionType("0", count: 0)
                 // 決定下一步
                 let nextSet = setIndex + 1
                 if nextSet < currentExercise.sets {
                     // 還有下一組，進入 rest
+                    print("rest...")
+                    //bluetoothManager.sendActionType("0")
                     path.append(.rest(plan: plan, exerciseIndex: exerciseIndex, setIndex: nextSet))
                 } else if exerciseIndex + 1 < plan.details.count {
                     // 換下一個動作
+                    bluetoothManager.sendActionType(plan.details[exerciseIndex].id)
                     path.append(.rest(plan: plan, exerciseIndex: exerciseIndex + 1, setIndex: 0))
+                    
                 } else {
                     // 全部完成
                     path.append(.home)
