@@ -85,7 +85,7 @@ struct workoutView: View {
                     
                 } else {
                     // 全部完成
-                    path.append(.home)
+                    path.append(.workoutComplete(plan: plan))
                 }
             }
         }

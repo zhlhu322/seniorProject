@@ -13,7 +13,7 @@ struct restView: View {
     let exerciseIndex: Int
     let setIndex: Int
 
-    @State private var timeRemaining: Int = 30 // 你可以根據 plan.exercises[exerciseIndex].rest_seconds 設定
+    @State private var timeRemaining: Int = 5 // 你可以根據 plan.exercises[exerciseIndex].rest_seconds 設定
     
     var body: some View {
         
@@ -46,6 +46,17 @@ struct restView: View {
             }
             .padding(.bottom,80)
             .onAppear {
+                // 固定倒數從 9 到 0
+                Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+                    if timeRemaining > 0 {
+                        timeRemaining -= 1
+                    } else {
+                        timer.invalidate()
+                        // 倒數結束後自動回 workoutView
+                        path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
+                    }
+                }
+                /*enya origin edtion
                 timeRemaining = plan.details[exerciseIndex].rest_seconds
                 Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
                     if timeRemaining > 0 {
@@ -55,7 +66,7 @@ struct restView: View {
                         // 回到 workoutView
                         path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
                     }
-                }
+                }*/
             }
             
         }
