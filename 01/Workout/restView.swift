@@ -13,7 +13,7 @@ struct restView: View {
     let exerciseIndex: Int
     let setIndex: Int
 
-    @State private var timeRemaining: Int = 5 // 你可以根據 plan.exercises[exerciseIndex].rest_seconds 設定
+    @State private var timeRemaining: Int = 9 // 你可以根據 plan.exercises[exerciseIndex].rest_seconds 設定
     
     var body: some View {
         

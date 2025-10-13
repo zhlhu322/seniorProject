@@ -69,26 +69,33 @@ struct workoutView: View {
         .onAppear {
             // times = 0 // This line is removed as per the new_code
         }
-        .onChange(of: bluetoothManager.currentCount) { newCount in
-            if newCount >= (currentExercise.targetCount ?? 1) {
-                // 決定下一步
-                let nextSet = setIndex + 1
-                if nextSet < currentExercise.sets {
-                    // 還有下一組，進入 rest
-                    print("rest...")
-                    //bluetoothManager.sendActionType("0")
-                    path.append(.rest(plan: plan, exerciseIndex: exerciseIndex, setIndex: nextSet))
-                } else if exerciseIndex + 1 < plan.details.count {
-                    // 換下一個動作
-                    bluetoothManager.sendActionType(plan.details[exerciseIndex].id)
-                    path.append(.rest(plan: plan, exerciseIndex: exerciseIndex + 1, setIndex: 0))
+        .onChange(of: bluetoothManager.currentCount) { oldValue, newValue in
+            // 🔸 當運動次數改變時觸發（舊值→oldValue，新值→newValue）
+            if newValue >= (currentExercise.targetCount ?? 1) {
+                if exerciseIndex + 1 < plan.details.count {
+                    // ▶️ 當前動作做完，進入下一個動作
                     
-                } else {
-                    // 全部完成
+                    // 將 id（字串）轉成 Int
+                    if let idValue = Int(plan.details[exerciseIndex].id) {
+                        // 乘以 10
+                        let multiplied = idValue * 10
+                        // 傳送給 micro:bit
+                        bluetoothManager.sendActionType(String(multiplied))
+                        print("📤 傳送乘以10後的ID: \(multiplied)")
+                    } else {
+                        print("⚠️ 錯誤：無法將 id 轉成整數，內容為 \(plan.details[exerciseIndex].id)")
+                    }
+                    
+                    // 切換到下一個動作
+                    path.append(.rest(plan: plan, exerciseIndex: exerciseIndex + 1, setIndex: 0))
+                }
+                else {
+                    // 🏁 全部完成
                     path.append(.workoutComplete(plan: plan))
                 }
             }
         }
+
     }
 }
 
