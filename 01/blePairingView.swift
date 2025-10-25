@@ -460,7 +460,7 @@ struct blePairingView: View {
                             .stroke(lineWidth: 2)
                             .foregroundStyle(Color(.darkBackground))
                     )
-                    .background(Color(.mint))
+                    .background(Color(.myMint))
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     
                     if bluetoothManager.connectionStatus == .connecting {
