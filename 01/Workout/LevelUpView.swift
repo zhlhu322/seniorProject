@@ -118,12 +118,12 @@ struct LevelUpView: View {
                             Text("咖哩飯 x 1")
                                 .font(.subheadline)
                                 .foregroundColor(.white)
-                        }
-                        .frame(maxWidth: .infinity)
+                        }       .frame(maxWidth: .infinity)
                         .frame(height: 80)
                         .background(Color("PrimaryColor"))
                         .cornerRadius(12)
                     }
+
                 }
                 .padding()
                 .cornerRadius(15)
