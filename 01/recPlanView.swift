@@ -19,9 +19,10 @@ struct PlanDetails: Identifiable,Codable, Hashable {
     let targetCount: Int?
     let targetTime: Int?
     let rest_seconds: Int
+    let lottie_url: String
 
     enum CodingKeys: String, CodingKey {
-        case id, name, sets, targetCount, targetTime, rest_seconds
+        case id, name, sets, targetCount, targetTime, rest_seconds,lottie_url
     }
 }
 
