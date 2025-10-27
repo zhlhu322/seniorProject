@@ -2,7 +2,7 @@
 //  LevelUpView.swift
 //  01
 //
-//  Created by 李橘亞 on 2025/4/6.
+//  Created by 許雅涵 on 2025/10/27.
 //
 
 import SwiftUI
@@ -54,7 +54,7 @@ struct LevelUpView: View {
                                 .foregroundColor(.white)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .frame(height: 80)
                         .background(Color("PrimaryColor"))
                         .cornerRadius(12)
                         
@@ -68,10 +68,11 @@ struct LevelUpView: View {
                                 .foregroundColor(.white)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .frame(height: 80)
                         .background(Color("PrimaryColor"))
                         .cornerRadius(12)
                     }
+
                 }
                 .padding()
                 .cornerRadius(15)

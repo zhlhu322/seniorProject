@@ -49,7 +49,7 @@ struct workoutView: View {
                     .foregroundColor(Color(.white))
                     .font(.system(size: 20))
                 LottieView {
-                    await LottieAnimation.loadedFrom(url: URL(string: "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json")! )
+                    await LottieAnimation.loadedFrom(url: URL(string: currentExercise.lottie_url)!)
                 }
                 .playing(loopMode:.loop)
                 .resizable()
@@ -76,7 +76,7 @@ struct workoutView: View {
                     // ▶️ 當前動作做完，進入下一個動作
                     
                     // 將 id（字串）轉成 Int
-                    if let idValue = Int(plan.details[exerciseIndex].id) {
+                    if let idValue = Int(plan.details[exerciseIndex + 1].id) {
                         // 乘以 10
                         let multiplied = idValue * 10
                         // 傳送給 micro:bit
@@ -91,6 +91,7 @@ struct workoutView: View {
                 }
                 else {
                     // 🏁 全部完成
+                    bluetoothManager.sendActionType(String(0))
                     path.append(.workoutComplete(plan: plan))
                 }
             }
