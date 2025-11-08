@@ -14,6 +14,7 @@ enum PlanRoute: Hashable {
     case levelup
     case signUp
     case signUp2
+    case signIn
     case exerciseDetail(ExerciseDetail)
 }
 
@@ -32,6 +33,8 @@ struct ContentView: View {
                         signUpView(path: $path)
                     case .signUp2:
                         signUpView2(path: $path)
+                    case .signIn:
+                        signInView(path: $path)
                     case .recPlan:
                         recPlanView(path: $path)
                     case .cusPlan:
@@ -60,5 +63,3 @@ struct ContentView: View {
         }
     }
 }
-
-
