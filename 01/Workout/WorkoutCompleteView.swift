@@ -10,6 +10,9 @@ import SwiftUI
 struct WorkoutCompleteView: View {
     @Binding var path: [PlanRoute]
     let plan: WorkoutPlan
+    @StateObject private var historyManager = WorkoutHistoryManager.shared
+    @State private var workoutDuration: Int = 0  // 運動持續時間（秒）
+    @State private var isSaving = false
     
     var body: some View {
         VStack(spacing: 30) {
@@ -37,18 +40,34 @@ struct WorkoutCompleteView: View {
                     .padding()
                 
                 Button(action: {
-                    path.append(.levelup)
-                    }) {
-                        HStack {
-                            Text("前往升級")
-                                .font(.headline)
-                                .foregroundColor(Color(.white))
+                    isSaving = true
+                    // 儲存運動記錄到 Firestore
+                    historyManager.saveWorkoutHistory(plan: plan, duration: workoutDuration) { error in
+                        isSaving = false
+                        if let error = error {
+                            print("❌ 儲存運動記錄失敗: \(error.localizedDescription)")
+                        } else {
+                            print("✅ 運動記錄已儲存")
                         }
-                        .padding()
-                        .frame(width: 300, height: 60)
-                        .background(Color(.accent))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        path.append(.levelup)
                     }
+                }) {
+                    HStack {
+                        if isSaving {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .padding(.trailing, 5)
+                        }
+                        Text(isSaving ? "儲存中..." : "前往升級")
+                            .font(.headline)
+                            .foregroundColor(Color(.white))
+                    }
+                    .padding()
+                    .frame(width: 300, height: 60)
+                    .background(Color(.accent))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .disabled(isSaving)
                     
             // 運動計劃名稱
             /*Text(plan.name)
@@ -79,7 +98,7 @@ struct WorkoutCompleteView: View {
             
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color("Mint"))
+        .background(Color(.myMint))
         .navigationBarHidden(true)
     }
 }
