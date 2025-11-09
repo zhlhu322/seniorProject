@@ -13,6 +13,7 @@ enum AppTab {
 struct MainTabView: View {
     @State private var selectedTab: AppTab = .home
     @State private var planPath: [PlanRoute] = []
+    @State private var userPath: [UserRoute] = []
     @ObservedObject var authVM = AuthenticationViewModel.shared
     
     var body: some View {
@@ -20,6 +21,7 @@ struct MainTabView: View {
             // 商店 tab
             NavigationStack {
                 Text("my muscle")
+                    .toolbar(.visible, for: .tabBar) // 商店 root 固定顯示
             }
             .tabItem {
                 Label("商店", systemImage: "cart.fill")
@@ -40,6 +42,9 @@ struct MainTabView: View {
                     return destinationView(for: route)
                 }
             }
+            // 將 tab bar 可見性附加在 NavigationStack 層級，立即生效
+            .toolbar(planPath.isEmpty ? .visible : .hidden, for: .tabBar)
+            .animation(.easeInOut(duration: 0.1), value: planPath.isEmpty)
             .tabItem {
                 Label("主頁", systemImage: "house.fill")
             }
@@ -49,81 +54,80 @@ struct MainTabView: View {
                 planPath = []
             }
             .onChange(of: planPath) { oldValue, newValue in
-                print("📍 Path 改變: count \(oldValue.count) -> \(newValue.count)")
                 if !newValue.isEmpty {
                     print("   最新路由: \(newValue.last!)")
                 }
             }
             
-            // 使用者 tab
-            NavigationStack {
-                UserView(selectedTab: $selectedTab)
-            }
-            .tabItem {
-                Label("使用者", systemImage: "person.fill")
-            }
-            .tag(AppTab.user)
+             // 使用者 tab
+             NavigationStack(path: $userPath) {
+                UserView(selectedTab: $selectedTab, path: $userPath)
+                    .navigationDestination(for: UserRoute.self) { route in
+                        switch route {
+                        case .monthlySports:
+                            MonthlySportsView()
+                        case .bodyRecord:
+                            PostureRecordView()
+                        case .userWorkoutsHistory:
+                            UserWorkoutsHistoryView()
+                        }
+                    }
+             }
+             // 將 tab bar 可見性附加在 NavigationStack 層級，立即生效
+             .toolbar(userPath.isEmpty ? .visible : .hidden, for: .tabBar)
+             .animation(.easeInOut(duration: 0.2), value: userPath.isEmpty)
+             .tabItem {
+                 Label("使用者", systemImage: "person.fill")
+             }
+             .tag(AppTab.user)
         }
-        .onChange(of: authVM.isLoggedIn) { oldValue, newValue in
-            // ✅ 登出時自動切換到主頁 tab（顯示 IntroView）
-            if !newValue {
-                selectedTab = .home
-                planPath = []
-            }
-        }
+        // 移除 TabView 層級的全域 toolbar 設定，改為由各 NavigationStack / root view 控制
+         .onChange(of: authVM.isLoggedIn) { oldValue, newValue in
+             // ✅ 登出時自動切換到主頁 tab（顯示 IntroView）
+             if !newValue {
+                 selectedTab = .home
+                 planPath = []
+             }
+         }
     }
     
-    // 根據路由決定顯示的 View 和是否隱藏 tab bar
+    // 根據路由決定顯示的 View
     @ViewBuilder
     private func destinationView(for route: PlanRoute) -> some View {
         switch route {
         case .signUp:
             signUpView(path: $planPath)
-                .toolbar(.hidden, for: .tabBar)
         case .signUp2:
             signUpView2(path: $planPath)
-                .toolbar(.hidden, for: .tabBar)
         case .signIn:
             signInView(path: $planPath)
-                .toolbar(.hidden, for: .tabBar)
         case .home:
             HomeView(path: $planPath)
         case .choosePlan:
             workoutPlanTypeView(path: $planPath)
-                .toolbar(.hidden, for: .tabBar)
         case .recPlan:
             recPlanView(path: $planPath)
-                .toolbar(.hidden, for: .tabBar)
         case .cusPlan:
             cusPlanView(path: $planPath)
-                .toolbar(.hidden, for: .tabBar)
         case .cusPlan_edit(let selectedExerciseIDs):
             cusPlan_edit(path: $planPath, selectedExerciseIDs: selectedExerciseIDs)
-                .toolbar(.hidden, for: .tabBar)
         case .planInfo(let plan):
             planInfoView(plan: plan, path: $planPath)
-                .toolbar(.hidden, for: .tabBar)
         case .blePairing(let plan):
             blePairingView(path: $planPath, plan: plan)
                 .environmentObject(BluetoothManager())
-                .toolbar(.hidden, for: .tabBar)
         case .workout(let plan, let exerciseIndex, let setIndex):
             workoutView(path: $planPath, plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex)
                 .environmentObject(BluetoothManager())
-                .toolbar(.hidden, for: .tabBar)
         case .rest(let plan, let exerciseIndex, let setIndex):
             restView(path: $planPath, plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex)
                 .environmentObject(BluetoothManager())
-                .toolbar(.hidden, for: .tabBar)
         case .workoutComplete(let plan):
             WorkoutCompleteView(path: $planPath, plan: plan)
-                .toolbar(.hidden, for: .tabBar)
         case .levelup:
             LevelUpView(path: $planPath)
-                .toolbar(.hidden, for: .tabBar)
         case .exerciseDetail(let exercise):
             exerciseDetailView(detail: exercise)
-                .toolbar(.hidden, for: .tabBar)
         }
     }
 }

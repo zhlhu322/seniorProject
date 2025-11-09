@@ -9,9 +9,9 @@ import SwiftUI
 
 struct MonthlySportsView: View {
     @State private var currentDate = Date()
-    @State private var workoutDates: Set<DateComponents> = []
-    // 儲存有運動的日期
+    @State private var workoutDates: Set<Date> = []
     @State private var path: [UserRoute] = []
+    @StateObject private var historyManager = WorkoutHistoryManager.shared
     
     private let calendar = Calendar.current
     private let daysOfWeek = ["日", "一", "二", "三", "四", "五", "六"]
@@ -77,46 +77,88 @@ struct MonthlySportsView: View {
             }
             .background(Color(.white))
 
-            
-            
-            VStack{
-                Text("近期紀錄")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 20)
-                HStack(spacing: 15) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(.primary))
-                        Text("3/22")
-                    }
-                    .frame(width:50,height:50)
-                    VStack(alignment: .leading) {
-                        Text("上肢運動")
-                        Text("30分鍾").font(.footnote)
-                    }
+            // MARK: - 近期紀錄區域
+            VStack(spacing: 12) {
+                HStack {
+                    Text("近期紀錄")
+                        .font(.headline)
+                        .foregroundColor(Color(.darkBackground))
                     Spacer()
-                    Button(action: {path.append(.userWorkoutsHistory)}) {
-                        Image(systemName:"chevron.right")
-                            .font(.title3)
-                            .foregroundColor(Color(.darkBackground))
+                    NavigationLink(value: UserRoute.userWorkoutsHistory) {
+                        HStack(spacing: 4) {
+                            Text("查看全部")
+                                .font(.caption)
+                            Image(systemName: "chevron.right")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(Color(.primary))
                     }
                 }
-                .padding()
-                .frame(width: 350, height: 64)
-                .background(Color(.white))
-                .cornerRadius(16)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color(.black), style: StrokeStyle(lineWidth: 1))
+                .padding(.horizontal, 20)
+                
+                // 顯示最近3筆運動記錄
+                if recentThreeWorkouts.isEmpty {
+                    // 空狀態
+                    VStack(spacing: 10) {
+                        Image(systemName: "figure.walk.circle")
+                            .font(.system(size: 40))
+                            .foregroundColor(.gray.opacity(0.5))
+                        Text("還沒有運動記錄")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(height: 100)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.white))
+                    .cornerRadius(16)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color(.black).opacity(0.1), style: StrokeStyle(lineWidth: 1))
+                    }
+                    .padding(.horizontal, 15)
+                } else {
+                    ForEach(recentThreeWorkouts) { workout in
+                        NavigationLink(value: UserRoute.userWorkoutsHistory) {
+                            RecentWorkoutRow(workout: workout)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
-                .foregroundColor(.black)
             }
+            .padding(.bottom, 10)
             
             Spacer()
         }
         .background(Color(.background))
         .navigationTitle("本月運動")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            #if DEBUG
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button("➕ 加入測試資料") {
+                        addTestData()
+                    }
+                    Button("🗑️ 清除測試資料", role: .destructive) {
+                        clearTestData()
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundColor(.white)
+                }
+            }
+            #endif
+        }
+        .navigationDestination(for: UserRoute.self) { route in
+            switch route {
+            case .userWorkoutsHistory:
+                UserWorkoutsHistoryView()
+            case .monthlySports:
+                MonthlySportsView()
+            case .bodyRecord:
+                EmptyView() // 如果有身體記錄頁面，可以在這裡添加
+            }
+        }
         .onAppear {
             loadWorkoutDates()
             let appearance = UINavigationBarAppearance()
@@ -134,6 +176,11 @@ struct MonthlySportsView: View {
         formatter.locale = Locale(identifier: "zh_TW")
         formatter.dateFormat = "yyyy年M月"
         return formatter.string(from: currentDate)
+    }
+    
+    /// 取得最近3筆運動記錄
+    private var recentThreeWorkouts: [WorkoutHistory] {
+        return historyManager.recentWorkouts.prefix(3).map { $0 }
     }
     
     /// 取得當月所有日期（包含前面的空白）
@@ -178,22 +225,61 @@ struct MonthlySportsView: View {
     }
     /// 判斷某日期是否有運動
     private func isWorkoutDay(_ date: Date) -> Bool {
-        let components = calendar.dateComponents([.year, .month, .day], from: date)
-        return workoutDates.contains(components)
+        let startOfDay = calendar.startOfDay(for: date)
+        return workoutDates.contains(startOfDay)
     }
-    /// 載入有運動的日期（從 Firestore 或本地資料）
+    
+    /// 載入有運動的日期（從 Firestore）
     private func loadWorkoutDates() {
-        // TODO: 從 Firestore 載入使用者的運動記錄
-        // 目前使用測試資料
-        let testDates: [Date] = [
-            calendar.date(from: DateComponents(year: 2025, month: 10, day: 5))!,
-            calendar.date(from: DateComponents(year: 2025, month: 10, day: 12))!,
-            calendar.date(from: DateComponents(year: 2025, month: 10, day: 13))!,
-            calendar.date(from: DateComponents(year: 2025, month: 10, day: 22))!
-        ]
+        let components = calendar.dateComponents([.year, .month], from: currentDate)
+        guard let year = components.year, let month = components.month else { return }
         
-        workoutDates = Set(testDates.map { calendar.dateComponents([.year, .month, .day], from: $0) })
+        // 從 Firestore 載入該月的運動記錄
+        historyManager.loadMonthlyWorkouts(year: year, month: month)
+        
+        // 載入最近3筆運動記錄（用於近期紀錄區域）
+        historyManager.loadRecentWorkouts(limit: 3)
+        
+        // 延遲一下讓資料載入完成後更新 UI
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.workoutDates = historyManager.getWorkoutDates()
+        }
     }
+    
+    // MARK: - 測試資料方法
+    #if DEBUG
+    /// 加入測試資料
+    private func addTestData() {
+        print("🔄 開始加入測試資料...")
+        TestDataHelper.shared.addTestWorkoutData { success in
+            if success {
+                print("✅ 測試資料加入成功！")
+                // 重新載入資料
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.loadWorkoutDates()
+                }
+            } else {
+                print("❌ 測試資料加入失敗")
+            }
+        }
+    }
+    
+    /// 清除測試資料
+    private func clearTestData() {
+        print("🔄 開始清除測試資料...")
+        TestDataHelper.shared.clearAllTestData { success in
+            if success {
+                print("✅ 測試資料已清除！")
+                // 重新載入資料
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.loadWorkoutDates()
+                }
+            } else {
+                print("❌ 清除測試資料失敗")
+            }
+        }
+    }
+    #endif
 }
 
 // MARK: - 日期格子 View
@@ -216,6 +302,83 @@ struct DayCell: View {
                 .foregroundColor(isWorkoutDay ? .white : Color(.darkBackground))
         }
         .frame(height: 40)
+    }
+}
+
+// MARK: - 近期運動記錄行 View
+struct RecentWorkoutRow: View {
+    let workout: WorkoutHistory
+    private let calendar = Calendar.current
+    
+    var body: some View {
+        HStack(spacing: 15) {
+            // 日期標記
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.primary))
+                VStack(spacing: 2) {
+                    Text(formatDate(workout.completedAt.dateValue()))
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .multilineTextAlignment(.center)
+                }
+                .foregroundColor(.white)
+                .padding(6)
+            }
+            .frame(width: 50, height: 50)
+            
+            // 運動資訊
+            VStack(alignment: .leading, spacing: 4) {
+                Text(workout.planName)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color(.darkBackground))
+                Text(formatDuration(workout.totalDuration))
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer()
+            
+            // 箭頭
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(Color(.darkBackground).opacity(0.5))
+        }
+        .padding()
+        .frame(height: 64)
+        .background(Color(.white))
+        .cornerRadius(16)
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(.black).opacity(0.1), style: StrokeStyle(lineWidth: 1))
+        }
+        .padding(.horizontal, 15)
+    }
+    
+    // MARK: - 輔助方法
+    
+    /// 格式化日期為月/日格式
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_TW")
+        formatter.dateFormat = "M/d"
+        return formatter.string(from: date)
+    }
+    
+    /// 格式化運動時長
+    private func formatDuration(_ seconds: Int) -> String {
+        let minutes = seconds / 60
+        if minutes < 60 {
+            return "\(minutes)分鐘"
+        } else {
+            let hours = minutes / 60
+            let remainingMinutes = minutes % 60
+            if remainingMinutes == 0 {
+                return "\(hours)小時"
+            }
+            return "\(hours)小時\(remainingMinutes)分"
+        }
     }
 }
 
