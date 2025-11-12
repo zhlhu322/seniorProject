@@ -469,7 +469,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+<<<<<<< HEAD
 				PRODUCT_BUNDLE_IDENTIFIER = com.countbuddy;
+=======
+				PRODUCT_BUNDLE_IDENTIFIER = com.seniorProject.01;
+>>>>>>> aaeab27 (Apply updated .gitignore)
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -503,7 +507,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+<<<<<<< HEAD
 				PRODUCT_BUNDLE_IDENTIFIER = com.countbuddy;
+=======
+				PRODUCT_BUNDLE_IDENTIFIER = com.seniorProject.01;
+>>>>>>> aaeab27 (Apply updated .gitignore)
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
