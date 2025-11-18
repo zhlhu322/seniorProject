@@ -2,7 +2,7 @@
 //  blePairingView.swift
 //  01
 //
-//  Created by 李恩亞 on 2025/5/2.
+//  Created by 李橋亞 on 2025/5/2.
 //
 
 import SwiftUI
@@ -18,7 +18,8 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     @Published var connectionStatus: ConnectionStatus = .disconnected
     @Published var isCorrectDevice = false
     @Published var currentCount: Int = 0
-    @Published var isDeviceReady = false  // 新增：裝置是否準備好
+    @Published var isDeviceReady = false  // 新增:裝置是否準備好
+    @Published var startAppend: Bool = false //新增:即將跳轉頁面
     
     var actionTypeCharacteristic: CBCharacteristic?
     var receiveCharacteristic: CBCharacteristic?
@@ -70,7 +71,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         for peripheral in connectedPeripherals {
             print("發現已連接的裝置: \(peripheral.name ?? "Unknown")")
             if let deviceName = peripheral.name, deviceName.contains(targetDeviceName) {
-                print("找到目標裝置，嘗試連接")
+                print("找到目標裝置,嘗試連接")
                 connect(to: peripheral)
             }
         }
@@ -88,9 +89,9 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         print("裝置 UUID: \(peripheral.identifier.uuidString)")
         print("RSSI: \(RSSI)")
         
-        // 如果發現目標裝置，立即嘗試連接
+        // 如果發現目標裝置,立即嘗試連接
         if let deviceName = peripheral.name, deviceName.contains(targetDeviceName) {
-            print("找到目標裝置，嘗試連接")
+            print("找到目標裝置,嘗試連接")
             centralManager.stopScan()  // 停止掃描
             connect(to: peripheral)
         }
@@ -152,7 +153,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             self.isDeviceReady = false
             
             if let error = error {
-                print("裝置斷開連接，錯誤: \(error.localizedDescription)")
+                print("裝置斷開連接,錯誤: \(error.localizedDescription)")
             } else {
                 print("裝置正常斷開連接")
             }
@@ -178,7 +179,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         for service in services {
             print("🔍 服務 UUID: \(service.uuid)")
             if service.uuid == serviceUUID {
-                print("✅ 找到目標服務，開始發現特徵...")
+                print("✅ 找到目標服務,開始發現特徵...")
                 peripheral.discoverCharacteristics([rxCharacteristicUUID, txCharacteristicUUID], for: service)
             }
         }
@@ -223,11 +224,11 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             }
         }
         
-        // 當兩個特徵都找到時，標記裝置準備好
+        // 當兩個特徵都找到時,標記裝置準備好
         if foundRx && foundTx {
             DispatchQueue.main.async {
                 print("🎉 所有特徵都已設置完成")
-                // 先不要立即設為 ready，等收到通知訂閱確認
+                // 等待通知訂閱確認再設為 ready
             }
         }
     }
@@ -241,20 +242,22 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         if characteristic.uuid == rxCharacteristicUUID {
             DispatchQueue.main.async {
                 if characteristic.isNotifying {
-                    print("✅ 成功訂閱通知，裝置準備完成")
+                    print("✅ 成功訂閱通知,設備準備完成")
+                    print("🔍 DEBUG: isDeviceReady 設為 true")
                     self.isDeviceReady = true
                     
-                    // 可選：發送一個測試訊息確認連接
+                    // 可選:發送一個測試訊息確認連接
                     self.sendConnectionTest()
                 } else {
                     print("❌ 通知訂閱失敗")
+                    print("🔍 DEBUG: isDeviceReady 保持 false")
                     self.isDeviceReady = false
                 }
             }
         }
     }
     
-    // 新增：發送連接測試
+    // 新增:發送連接測試
     func sendConnectionTest() {
         print("📤 發送連接測試訊息")
         let testMessage = "ping".data(using: .utf8)!
@@ -270,7 +273,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         print("📱 收到資料的 Characteristic UUID: \(characteristic.uuid)")
         
         guard characteristic.uuid == rxCharacteristicUUID else {
-            print("⚠️ 不是預期的 characteristic，忽略")
+            print("⚠️ 不是預期的 characteristic,忽略")
             return
         }
         
@@ -305,7 +308,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         if let message = receivedString {
             handleReceivedMessage(message)
         } else {
-            // 如果無法解析為字串，檢查是否為數字
+            // 如果無法解析為字串,檢查是否為數字
             handleReceivedData(data)
         }
     }
@@ -318,6 +321,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
             switch message.lowercased() {
             case "connected":
                 print("✅ 收到連接確認")
+                self.startAppend = true
                 self.isDeviceReady = true
                 
             case "end":
@@ -375,7 +379,7 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
     
     func sendActionType(_ str: String) {
         guard isDeviceReady else {
-            print("⚠️ 裝置尚未準備好，無法發送")
+            print("⚠️ 裝置尚未準備好,無法發送")
             return
         }
         
@@ -391,9 +395,6 @@ class BluetoothManager: NSObject, ObservableObject, CBCentralManagerDelegate, CB
         print("📤 發送動作類型(轉換後): \(transformed.map { String(format: "%02X", $0) }.joined(separator: " "))")
     }
 
-
-
-    
     // 發送字串訊息
     func sendMessage(_ message: String) {
         guard let data = message.data(using: .utf8) else {
@@ -409,7 +410,8 @@ struct blePairingView: View {
     @Binding var path: [PlanRoute]
     let plan: WorkoutPlan
     @EnvironmentObject var bluetoothManager: BluetoothManager
-    
+    let scanTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
 
     init(path: Binding<[PlanRoute]>, plan: WorkoutPlan) {
             self._path = path
@@ -419,8 +421,9 @@ struct blePairingView: View {
     
     var body: some View {
         VStack {
-            if bluetoothManager.connectionStatus == .connected && bluetoothManager.isCorrectDevice &&
-                bluetoothManager.isDeviceReady{
+            if bluetoothManager.connectionStatus == .connected &&
+               bluetoothManager.isCorrectDevice &&
+               (bluetoothManager.isDeviceReady || bluetoothManager.startAppend) {
                 // 連接成功後自動跳轉
                 WaitingView(path: $path, plan: plan)
                     .environmentObject(bluetoothManager)
@@ -494,23 +497,63 @@ struct blePairingView: View {
                                     .foregroundStyle(Color(.darkBackground))
                             )
                     }
+                    
+                    // 新增: 顯示當前連接狀態用於調試
+                    VStack(spacing: 5) {
+                        Text("🔍 調試信息")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        Text("連接狀態: \(statusText)")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                        Text("正確設備: \(bluetoothManager.isCorrectDevice ? "是" : "否")")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                        Text("設備就緒: \(bluetoothManager.isDeviceReady ? "是" : "否")")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                        Text("準備跳轉: \(bluetoothManager.startAppend ? "是" : "否")")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
                 }
             }
-            .onChange(of: bluetoothManager.connectionStatus) { newStatus in
-                if newStatus == .connected && bluetoothManager.isCorrectDevice {
-                        path.append(.workout(plan: plan, exerciseIndex: 0, setIndex: 0))
+            
+            .onAppear {
+                print("進入配對頁面")
+                bluetoothManager.startScanning()
+            }
+            .onReceive(scanTimer) { _ in
+                if bluetoothManager.connectionStatus == .connected &&
+                    bluetoothManager.isCorrectDevice &&
+                    bluetoothManager.isDeviceReady {
+                    // 已配對成功就不再掃描
+                    return
                 }
+                //bluetoothManager.startScanning()
             }
             .ignoresSafeArea()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(.background))
-        
+    }
+    
+    // 輔助計算屬性:顯示連接狀態文字
+    private var statusText: String {
+        switch bluetoothManager.connectionStatus {
+        case .disconnected: return "未連接"
+        case .connecting: return "連接中"
+        case .connected: return "已連接"
+        case .failed: return "失敗"
+        case .wrongDevice: return "錯誤設備"
+        }
     }
 }
 
 struct WaitingView: View {
     @State private var timeRemaining = 3
     @State private var hasSentAction = false
+    @State private var didNavigate = false //append debugger
     @EnvironmentObject var bluetoothManager: BluetoothManager
     @Binding var path: [PlanRoute]
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -544,17 +587,24 @@ struct WaitingView: View {
         .frame(maxWidth:.infinity,maxHeight: .infinity)
         .background(Color.brown)
         .onAppear {
+            print("🔍 WaitingView onAppear")
+            print("🔍 發送動作類型: \(plan.details[0].id)")
             let idString = plan.details[0].id   // "1"
             bluetoothManager.sendActionType(idString)
         }
         .onReceive(timer) { _ in
             if timeRemaining > 0 {
                 timeRemaining -= 1
+                print("⏱️ 倒數: \(timeRemaining)")
             } else if !hasSentAction {
                 let idString = plan.details[0].id   // "1"
                 if let idInt = Int(idString) {
-                    print("sending\(Int(idString))")
-                    path.append(.workout(plan: plan, exerciseIndex: 0, setIndex: 0))
+                    print("🔍 嘗試跳轉, startAppend: \(bluetoothManager.startAppend), didNavigate: \(didNavigate)")
+                    if (bluetoothManager.startAppend && !didNavigate) {
+                        didNavigate = true
+                        print("✅ 執行跳轉, didNavigate 設為: \(didNavigate)")
+                        path.append(.workout(plan: plan, exerciseIndex: 0, setIndex: 0))
+                    }
                 }
                 hasSentAction = true
             }
@@ -568,4 +618,3 @@ struct WaitingView: View {
 //    blePairingView(path: .constant([]))
 //        .environmentObject(BluetoothManager())
 //}
-
