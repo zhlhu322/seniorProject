@@ -1,46 +1,48 @@
 {
-  "workout_sets": [
-      {
-        "name": "test訓練",
-        "details": [
-          { "id": "1", "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 5 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-          { "id": "2", "name": "肩推","sets": 2,"targetCount":5, "rest_seconds": 5 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-          { "id": "3", "name": "手臂伸展","sets": 1,"targetCount":5, "rest_seconds": 3 ,"lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-          { "id": "5", "name": "划船","sets": 1,"targetCount":5, "rest_seconds": 7 , "lottie_url": "https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json"}
-        ]
-      },
-    {
-      "name": "上肢訓練",
-      "details": [
-        { "id": "1", "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 10 ,"lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-        { "id": "2", "name": "肩推","sets": 1,"targetCount":5, "rest_seconds": 10 ,"lottie_url": "https://cdn.lottielab.com/l/7C2E4GWRTSPVc0.json"},
-        { "id": "3", "name": "手臂伸展","sets": 2,"targetCount":5, "rest_seconds": 10, "lottie_url": "https://cdn.lottielab.com/l/9eUKBNaPSH5ExU.json" },
-        { "id": "5", "name": "划船","sets": 1,"targetCount":5, "rest_seconds": 7 , "lottie_url": "https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json"}
-      ]
-    },
-    {
-      "name": "下肢訓練",
-      "details": [
-        { "id": "7","name": "太空椅深蹲", "sets": 1,"targetTime":60, "rest_seconds": 15 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-        { "id": "8", "name": "側躺抬腿","sets": 1,"targetCount":15, "rest_seconds": 15 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"}
-      ]
-    },
-    {
-      "name": "核心訓練",
-      "details": [
-        { "id": "6", "name": "超人","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-        { "id": "9", "name": "棒式","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-        { "id": "10", "name": "側棒式","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"}
-      ]
-    },
-    {
-      "name": "全身訓練",
-      "details": [
-        { "id": "1","name": "手臂彎舉", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-        { "id": "4", "name": "胸推", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-        { "id": "7", "name": "太空椅深蹲", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"},
-        { "id": "9", "name": "棒式", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json"}
-      ]
-    }
-  ]
-} 
+    "workout_sets": [
+        {
+            "name": "test訓練",
+            "details": [
+                { "id": "1",
+                    "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 5 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "biceps"
+                },
+                { "id": "2", "name": "肩推","sets": 2,"targetCount":5, "rest_seconds": 5 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "shoulder_press",},
+                { "id": "3", "name": "手臂伸展","sets": 1,"targetCount":5, "rest_seconds": 3 ,"lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "shoulder_press",},
+                { "id": "5", "name": "划船","sets": 1,"targetCount":5, "rest_seconds": 7 , "lottie_url": "https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json", "image_name": "shoulder_press",}
+            ]
+        },
+        {
+            "name": "上肢訓練",
+            "details": [
+                { "id": "1", "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 10 ,"lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "biceps"},
+                { "id": "2", "name": "肩推","sets": 1,"targetCount":5, "rest_seconds": 10 ,"lottie_url": "https://cdn.lottielab.com/l/7C2E4GWRTSPVc0.json", "image_name": "shoulder_press"},
+                { "id": "3", "name": "手臂伸展","sets": 2,"targetCount":5, "rest_seconds": 10, "lottie_url": "https://cdn.lottielab.com/l/9eUKBNaPSH5ExU.json", "image_name": "elbow_extension"},
+                { "id": "5", "name": "划船","sets": 1,"targetCount":5, "rest_seconds": 7 , "lottie_url": "https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json" , "image_name": "seated_row"}
+            ]
+        },
+        {
+            "name": "下肢訓練",
+            "details": [
+                { "id": "7","name": "太空椅深蹲", "sets": 1,"targetTime":60, "rest_seconds": 15 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
+                { "id": "8", "name": "側躺抬腿","sets": 1,"targetCount":15, "rest_seconds": 15 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"}
+            ]
+        },
+        {
+            "name": "核心訓練",
+            "details": [
+                { "id": "6", "name": "超人","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
+                { "id": "9", "name": "棒式","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
+                { "id": "10", "name": "側棒式","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"}
+            ]
+        },
+        {
+            "name": "全身訓練",
+            "details": [
+                { "id": "1","name": "手臂彎舉", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
+                { "id": "4", "name": "胸推", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
+                { "id": "7", "name": "太空椅深蹲", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
+                { "id": "9", "name": "棒式", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"}
+            ]
+        }
+    ]
+}

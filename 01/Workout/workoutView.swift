@@ -67,14 +67,14 @@ struct workoutView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("PrimaryColor"))
         .onAppear {
+            print("進入動作頁面")
             // times = 0 // This line is removed as per the new_code
         }
         .onChange(of: bluetoothManager.currentCount) { oldValue, newValue in
             // 🔸 當運動次數改變時觸發（舊值→oldValue，新值→newValue）
-            if newValue >= (currentExercise.targetCount ?? 1) {
+            if newValue >= (currentExercise.targetCount ?? 10) {
                 if exerciseIndex + 1 < plan.details.count {
                     // ▶️ 當前動作做完，進入下一個動作
-                    
                     // 將 id（字串）轉成 Int
                     if let idValue = Int(plan.details[exerciseIndex + 1].id) {
                         // 乘以 10
@@ -85,7 +85,6 @@ struct workoutView: View {
                     } else {
                         print("⚠️ 錯誤：無法將 id 轉成整數，內容為 \(plan.details[exerciseIndex].id)")
                     }
-                    
                     // 切換到下一個動作
                     path.append(.rest(plan: plan, exerciseIndex: exerciseIndex + 1, setIndex: 0))
                 }

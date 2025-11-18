@@ -12,11 +12,14 @@ struct restView: View {
     let plan: WorkoutPlan
     let exerciseIndex: Int
     let setIndex: Int
-
+    
     @State private var timeRemaining: Int = 10 // 你可以根據 plan.exercises[exerciseIndex].rest_seconds 設定
     
+    var currentExercise: PlanDetails {
+        plan.details[exerciseIndex]
+    }
+    
     var body: some View {
-        
         VStack{
             HStack{
                 Image(systemName: "xmark")
@@ -31,43 +34,51 @@ struct restView: View {
             }
             .padding()
             
-            Spacer().frame(height:200)
+            Spacer().frame(height:100)
             
             VStack {
-                Text("\(timeRemaining)")
-                    .foregroundColor(Color(.white))
-                    .font(.system(size: 20))
-                Image("rest")
-                    .resizable()
-                    .frame(width:200,height:200)
-                    .padding()
                 Text("休息").foregroundColor(Color(.white))
                     .font(.system(size: 32))
-            }
-            .padding(.bottom,80)
-            .onAppear {
-                // 固定倒數從 9 到 0
-                Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
-                    if timeRemaining > 0 {
-                        timeRemaining -= 1
-                    } else {
-                        timer.invalidate()
-                        // 倒數結束後自動回 workoutView
-                        path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
-                    }
+                Text("0 : \(timeRemaining)")
+                    .foregroundColor(Color(.white))
+                    .font(.system(size: 20))
+                ZStack {
+                    Color("PrimaryColor")        // 背景色
+                        .frame(width: 350, height: 350)
+                        .cornerRadius(20)
+                    Image(currentExercise.image_name)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 250, height: 250)
+                        .padding()
                 }
-                /*enya origin edtion
-                timeRemaining = plan.details[exerciseIndex].rest_seconds
-                Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
-                    if timeRemaining > 0 {
-                        timeRemaining -= 1
-                    } else {
-                        timer.invalidate()
-                        // 回到 workoutView
-                        path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
-                    }
-                }*/
             }
+            Text("預備動作").foregroundColor(Color(.white))
+                .font(.system(size: 28))
+                .padding(.bottom,80)
+                .onAppear {
+                    // 固定倒數從 9 到 0
+                    Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+                        if timeRemaining > 0 {
+                            timeRemaining -= 1
+                        } else {
+                            timer.invalidate()
+                            // 倒數結束後自動回 workoutView
+                            path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
+                        }
+                    }
+                    /*enya origin edtion
+                     timeRemaining = plan.details[exerciseIndex].rest_seconds
+                     Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+                     if timeRemaining > 0 {
+                     timeRemaining -= 1
+                     } else {
+                     timer.invalidate()
+                     // 回到 workoutView
+                     path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
+                     }
+                     }*/
+                }
             
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
