@@ -20,11 +20,16 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             // 商店 tab
             NavigationStack {
-                Text("my muscle")
+                MyChickenMeatView()
                     .toolbar(.visible, for: .tabBar) // 商店 root 固定顯示
             }
             .tabItem {
-                Label("商店", systemImage: "cart.fill")
+                Label {
+                    Text("我的肌胸肉")
+                } icon: {
+                    Image(selectedTab == .shop ? "MyChicken" : "MyChicken_unselected")
+                        .renderingMode(.template)
+                }
             }
             .tag(AppTab.shop)
             
@@ -124,8 +129,8 @@ struct MainTabView: View {
                 .environmentObject(BluetoothManager())
         case .workoutComplete(let plan):
             WorkoutCompleteView(path: $planPath, plan: plan)
-        case .levelup:
-            LevelUpView(path: $planPath)
+        case .levelup(let plan):
+            LevelUpView(path: $planPath, plan: plan)
         case .exerciseDetail(let exercise):
             exerciseDetailView(detail: exercise)
         }
