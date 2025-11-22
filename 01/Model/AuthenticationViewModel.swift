@@ -154,7 +154,8 @@ class AuthenticationViewModel: ObservableObject {
                                 "Flavoring": [
                                     "curry": 0
                                 ],
-                                "Style": [:]
+                                "Style": [:],
+                                "Stage": "chicken_baby"
                             ]
                             
                             chickenRef.setData(chickenData) { chickenError in

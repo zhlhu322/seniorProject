@@ -28,7 +28,7 @@ struct MainTabView: View {
                     Text("我的肌胸肉")
                 } icon: {
                     Image(selectedTab == .shop ? "MyChicken" : "MyChicken_unselected")
-                        .renderingMode(.template)
+                        .renderingMode(.original)
                 }
             }
             .tag(AppTab.shop)
