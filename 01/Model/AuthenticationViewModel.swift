@@ -142,9 +142,35 @@ class AuthenticationViewModel: ObservableObject {
                                 completion(.unknown(msg), "註冊失敗：\(msg)")
                             }
                         } else {
-                            self.isLoggedIn = true
-                            completion(nil, nil)
-                            print("🎉 使用者已註冊並登入 UID：\(user.uid)")
+                            // ✅ 建立 MyChicken 子 collection
+                            let chickenRef = db.collection("users").document(user.uid).collection("MyChicken").document()
+                            
+                            let chickenData: [String: Any] = [
+                                "AminoCoin": 0,
+                                "Endurance": 0,
+                                "Flexibility": 0,
+                                "XP": 0,
+                                "Strength": 0,
+                                "Flavoring": [
+                                    "curry": 0
+                                ],
+                                "Style": [:]
+                            ]
+                            
+                            chickenRef.setData(chickenData) { chickenError in
+                                DispatchQueue.main.async {
+                                    if let chickenError = chickenError {
+                                        print("⚠️ 建立小雞資料失敗：\(chickenError.localizedDescription)")
+                                        // 小雞建立失敗不影響註冊流程
+                                    } else {
+                                        print("🐔 小雞資料已建立，ID：\(chickenRef.documentID)")
+                                    }
+                                    
+                                    self.isLoggedIn = true
+                                    completion(nil, nil)
+                                    print("🎉 使用者已註冊並登入 UID：\(user.uid)")
+                                }
+                            }
                         }
                     }
                 }

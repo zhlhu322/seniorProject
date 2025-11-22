@@ -11,7 +11,7 @@ enum PlanRoute: Hashable {
     case workout(plan: WorkoutPlan, exerciseIndex: Int, setIndex: Int)
     case rest(plan: WorkoutPlan, exerciseIndex: Int, setIndex: Int)
     case workoutComplete(plan: WorkoutPlan)
-    case levelup
+    case levelup(plan: WorkoutPlan)
     case signUp
     case signUp2
     case signIn
@@ -54,8 +54,8 @@ struct ContentView: View {
                             .environmentObject(BluetoothManager())
                     case .workoutComplete(let plan):
                         WorkoutCompleteView(path: $path, plan: plan)
-                    case .levelup:
-                        LevelUpView(path: $path)
+                    case .levelup(let plan):
+                        LevelUpView(path: $path, plan: plan)
                     case .exerciseDetail(let detail):
                         exerciseDetailView(detail: detail)
                     }

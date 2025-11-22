@@ -17,7 +17,6 @@ struct WorkoutCompleteView: View {
     var body: some View {
         VStack(spacing: 30) {
             Spacer()
-
             // 完成標題
             Text("訓練完成！")
                 .font(.largeTitle)
@@ -49,7 +48,7 @@ struct WorkoutCompleteView: View {
                         } else {
                             print("✅ 運動記錄已儲存")
                         }
-                        path.append(.levelup)
+                        path.append(.levelup(plan: plan))
                     }
                 }) {
                     HStack {
