@@ -19,6 +19,7 @@ class MyChickenManager: ObservableObject {
     @Published var strength: Int = 0
     @Published var flavoring: [String: Int] = [:]
     @Published var style: [String: Any] = [:]
+    @Published var Stage: String = ""
     
     private let db = Firestore.firestore()
     
@@ -55,6 +56,7 @@ class MyChickenManager: ObservableObject {
                 self?.strength = data["Strength"] as? Int ?? 0
                 self?.flavoring = data["Flavoring"] as? [String: Int] ?? [:]
                 self?.style = data["Style"] as? [String: Any] ?? [:]
+                self?.Stage = data["Stage"] as? String ?? ""
                 
                 print("✅ 小雞資料已載入")
                 completion(nil)
@@ -91,7 +93,8 @@ class MyChickenManager: ObservableObject {
                 "XP": self.xp,
                 "Strength": self.strength,
                 "Flavoring": self.flavoring,
-                "Style": self.style
+                "Style": self.style,
+                "Stage": self.Stage
             ]
             
             chickenRef.document(documentId).updateData(updateData) { error in
