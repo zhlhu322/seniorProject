@@ -39,12 +39,12 @@ struct restView: View {
             VStack {
                 Text("休息").foregroundColor(Color(.white))
                     .font(.system(size: 32))
-                Text("0 : \(timeRemaining)")
+                Text("倒數計時：\(timeRemaining)")
                     .foregroundColor(Color(.white))
                     .font(.system(size: 20))
                 ZStack {
                     Color("PrimaryColor")        // 背景色
-                        .frame(width: 350, height: 350)
+                        .frame(width: 300, height: 300)
                         .cornerRadius(20)
                     Image(currentExercise.image_name)
                         .resizable()
@@ -53,7 +53,8 @@ struct restView: View {
                         .padding()
                 }
             }
-            Text("預備動作").foregroundColor(Color(.white))
+            Text("預備動作：\(currentExercise.name)")
+                .foregroundColor(Color(.white))
                 .font(.system(size: 28))
                 .padding(.bottom,80)
                 .onAppear {
@@ -64,7 +65,12 @@ struct restView: View {
                         } else {
                             timer.invalidate()
                             // 倒數結束後自動回 workoutView
-                            path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
+                            if let idValue = Int(currentExercise.id), idValue >= 6 {
+                                path.append(.workoutTiming(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
+                            }
+                            else{
+                                path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
+                            }
                         }
                     }
                     /*enya origin edtion

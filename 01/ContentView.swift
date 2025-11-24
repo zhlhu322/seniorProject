@@ -8,6 +8,7 @@ enum PlanRoute: Hashable {
     case cusPlan_edit(selectedExerciseIDs: Set<String>)
     case planInfo(WorkoutPlan)
     case blePairing(plan: WorkoutPlan)
+    case workoutTiming(plan: WorkoutPlan, exerciseIndex: Int, setIndex: Int)
     case workout(plan: WorkoutPlan, exerciseIndex: Int, setIndex: Int)
     case rest(plan: WorkoutPlan, exerciseIndex: Int, setIndex: Int)
     case workoutComplete(plan: WorkoutPlan)
@@ -48,6 +49,9 @@ struct ContentView: View {
                             .environmentObject(BluetoothManager())
                     case .workout(let plan, let exerciseIndex, let setIndex):
                         workoutView(path: $path, plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex)
+                            .environmentObject(BluetoothManager())
+                    case .workoutTiming(let plan, let exerciseIndex, let setIndex):
+                        workoutTimingView(path: $path, plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex)
                             .environmentObject(BluetoothManager())
                     case .rest(let plan, let exerciseIndex, let setIndex):
                         restView(path: $path, plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex)
