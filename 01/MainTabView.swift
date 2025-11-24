@@ -124,6 +124,9 @@ struct MainTabView: View {
         case .workout(let plan, let exerciseIndex, let setIndex):
             workoutView(path: $planPath, plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex)
                 .environmentObject(BluetoothManager())
+        case .workoutTiming(let plan, let exerciseIndex, let setIndex):
+            workoutTimingView(path: $planPath, plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex)
+                .environmentObject(BluetoothManager())
         case .rest(let plan, let exerciseIndex, let setIndex):
             restView(path: $planPath, plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex)
                 .environmentObject(BluetoothManager())

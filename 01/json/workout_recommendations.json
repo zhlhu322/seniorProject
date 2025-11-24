@@ -38,10 +38,13 @@
         {
             "name": "全身訓練",
             "details": [
-                { "id": "1","name": "手臂彎舉", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
-                { "id": "4", "name": "胸推", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
-                { "id": "7", "name": "太空椅深蹲", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
-                { "id": "9", "name": "棒式", "sets": 2, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"}
+                { "id": "1",
+                    "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 5 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "biceps"
+                },
+                { "id": "3", "name": "手臂伸展","sets": 1,"targetCount":5, "rest_seconds": 3 ,"lottie_url": "https://cdn.lottielab.com/l/9eUKBNaPSH5ExU.json", "image_name": "shoulder_press",},
+                { "id": "7","name": "太空椅深蹲", "sets": 1,"targetTime":60, "rest_seconds": 15 , "lottie_url": "wall_squat", "image_name": "wall_squat"},
+                { "id": "9", "name": "棒式","sets": 3, "rest_seconds": 60 ,
+                    "lottie_url":"plank", "image_name": "plank",},
             ]
         }
     ]

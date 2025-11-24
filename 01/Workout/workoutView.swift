@@ -2,7 +2,6 @@
 //  Workout page.swift
 //  01
 //
-//  Created by 李恩亞 on 2025/4/6.
 //
 
 import SwiftUI
@@ -45,7 +44,7 @@ struct workoutView: View {
                 .frame(height:UIScreen.main.bounds.height*0.15)
             
             VStack {
-                Text("次數: \(bluetoothManager.currentCount)/\(currentExercise.targetCount ?? 1)")  // 顯示目前次數
+                Text("目前次數： \(bluetoothManager.currentCount)/\(currentExercise.targetCount ?? 1)")  // 顯示目前次數
                     .foregroundColor(Color(.white))
                     .font(.system(size: 20))
                 LottieView {
@@ -78,7 +77,13 @@ struct workoutView: View {
                     // 將 id（字串）轉成 Int
                     if let idValue = Int(plan.details[exerciseIndex + 1].id) {
                         // 乘以 10
-                        let multiplied = idValue * 10
+                        var multiplied = idValue * 10
+                        if(multiplied == 70){ //10sec*3
+                            multiplied = 60
+                        }
+                        else if(multiplied == 90){ //30sec
+                            multiplied = 70
+                        }
                         // 傳送給 micro:bit
                         bluetoothManager.sendActionType(String(multiplied))
                         print("📤 傳送乘以10後的ID: \(multiplied)")

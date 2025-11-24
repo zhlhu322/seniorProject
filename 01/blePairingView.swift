@@ -497,26 +497,6 @@ struct blePairingView: View {
                                     .foregroundStyle(Color(.darkBackground))
                             )
                     }
-                    
-                    // 新增: 顯示當前連接狀態用於調試
-                    VStack(spacing: 5) {
-                        Text("🔍 調試信息")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        Text("連接狀態: \(statusText)")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                        Text("正確設備: \(bluetoothManager.isCorrectDevice ? "是" : "否")")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                        Text("設備就緒: \(bluetoothManager.isDeviceReady ? "是" : "否")")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                        Text("準備跳轉: \(bluetoothManager.startAppend ? "是" : "否")")
-                            .font(.caption2)
-                            .foregroundColor(.gray)
-                    }
-                    .padding()
                 }
             }
             
