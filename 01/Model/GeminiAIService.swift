@@ -49,12 +49,24 @@ class GeminiAIService {
         return "https://generativelanguage.googleapis.com/v1beta/models/\(modelName):generateContent"
     }
     
-    init(apiKey: String = "YOUR_GEMINI_API_KEY") {
-        self.apiKey = apiKey
+    /// 初始化 - 優先使用傳入的 apiKey；若未提供，從 Info.plist 的 GEMINI_API_KEY 讀取；找不到時會設為空字串（會導致呼叫時拋出錯誤）
+    init(apiKey: String? = nil) {
+            // 如果初始化時有傳入則用傳入的，否則統一從 AppEnvironment 抓
+            let finalKey = apiKey ?? AppEnvironment.geminiAPIKey
+            
+            if finalKey.isEmpty {
+                print("⚠️ 警告：Gemini API Key 為空，請求將會失敗")
+            }
+            self.apiKey = finalKey
     }
     
     // MARK: - 體態分析（圖片 + Vision 報告）
     func analyzePosture(image: UIImage, analysisReport: String) async throws -> String {
+        return try await analyzePostureWithQuestion(image: image, analysisReport: analysisReport, userQuestion: nil)
+    }
+    
+    // MARK: - 體態分析（圖片 + Vision 報告 + 使用者自訂問題）
+    func analyzePostureWithQuestion(image: UIImage, analysisReport: String, userQuestion: String?) async throws -> String {
         guard !apiKey.isEmpty && apiKey != "YOUR_GEMINI_API_KEY" else {
             throw AIServiceError.invalidAPIKey
         }
@@ -65,8 +77,8 @@ class GeminiAIService {
         }
         let base64Image = imageData.base64EncodedString()
         
-        // 構建 Prompt
-        let prompt = buildPostureAnalysisPrompt(analysisReport: analysisReport)
+        // 構建 Prompt（包含使用者問題）
+        let prompt = buildPostureAnalysisPrompt(analysisReport: analysisReport, userQuestion: userQuestion)
         
         // 構建請求體
         let requestBody: [String: Any] = [
@@ -153,11 +165,11 @@ class GeminiAIService {
     // MARK: - 私有方法
     
     /// 構建體態分析 Prompt
-    private func buildPostureAnalysisPrompt(analysisReport: String) -> String {
+    private func buildPostureAnalysisPrompt(analysisReport: String, userQuestion: String?) -> String {
         let exercisesList = GeminiAIService.availableExercises.joined(separator: "、")
         let plansList = GeminiAIService.workoutPlans.joined(separator: "、")
         
-        return """
+        var prompt = """
         你是「智能寶寶肌胸 🐥」，一個專業、友善且鼓舞人心的健身助手。
         
         ## 你的知識庫
@@ -183,9 +195,10 @@ class GeminiAIService {
            - 用 2-3 句話簡要總結整體體態狀況
            - 強調優點和需要改善的地方
         
-        2. **主要問題分析**（如果有檢測到問題）
-           - 詳細說明每個檢測到的體態問題
-           - 解釋可能的成因和影響
+        2. **🔎主要問題分析**（如果有檢測到問題）
+           - 說明時不用提到分析報告的來源與細節
+           - 簡要說明每個檢測到的體態問題
+           - 用1-2句話解釋可能的成因和影響
            - 如果沒有問題，簡單鼓勵繼續保持
         
         3. **🎯 推薦訓練組合**（必須包含）
@@ -205,7 +218,7 @@ class GeminiAIService {
              3. [動作名稱] - [說明]」
         
         5. **💡 日常建議**
-           - 提供 2-3 個實用的日常姿勢建議
+           - 提供 1-2 個實用的日常姿勢建議
            - 給予鼓勵和激勵
         
         ## 格式規範（重要）
@@ -220,6 +233,13 @@ class GeminiAIService {
         
         請開始你的完整分析（確保包含所有 5 個部分）：
         """
+        
+        // 如果有使用者問題，添加到 Prompt 中
+        if let question = userQuestion, !question.isEmpty {
+            prompt += "\n\n## 使用者問題\n\n\(question)\n"
+        }
+        
+        return prompt
     }
     
     /// 構建文字問答 Prompt

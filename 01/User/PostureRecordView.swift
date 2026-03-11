@@ -31,6 +31,7 @@ struct PostureRecordView: View {
     @State private var inputText = ""
     @State private var showPicker = false
     @State private var pickedImage: UIImage?
+    @State private var pendingImage: UIImage?
     @FocusState private var isInputFocused: Bool
     @State private var isAnalyzing = false
     @State private var isLoading = false
@@ -38,7 +39,7 @@ struct PostureRecordView: View {
     
     // 姿勢分析+AI服務
     private let analyzer = PostureAnalyzer()
-    private let aiService = GeminiAIService(apiKey: "AIzaSyAlk0JM6RVK_pR3KtrtQhlm7HZ589IBg1I")
+    private let aiService = GeminiAIService(apiKey: AppEnvironment.geminiAPIKey)
     private let chatHistoryManager = ChatHistoryManager.shared
 
     var body: some View {
@@ -53,114 +54,38 @@ struct PostureRecordView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // 載入指示器
-                if isLoadingHistory {
-                    HStack {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                        Text("載入歷史記錄...")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.systemGray6))
-                }
+                loadingIndicatorsView
                 
-                if isLoading {
-                    HStack {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                        Text("AI 分析中...")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.myMint).opacity(0.3))
-                }
-                
-                // 聊天記錄區域
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 12) {
-                            ForEach(messages) { message in
-                                MessageBubble(message: message)
-                                    .id(message.id)
-                            }
-                        }
-                        .onTapGesture {
-                            isInputFocused = false }
-                        .padding()
-                    }
-                    .scrollDismissesKeyboard(.immediately)
-                    .simultaneousGesture(TapGesture().onEnded {
-                        isInputFocused = false
-                        print("PostureRecordView: scrollView tapped -> isInputFocused=false")
-                    })
-                    .onChange(of: messages) { _ , newMessages in
-                        // 當 messages 陣列改變時捲動到底部
-                        if let lastMessage = newMessages.last {
-                            withAnimation {
-                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                            }
-                        }
-                    }
-                }
-                .background(Color(.background))
+                chatAreaView
                 
                 Divider()
                 
-                // 使用者輸入區域
-                HStack(spacing: 12) {
-                    // 相簿按鈕
-                    Button {
-                        showPicker = true
-                    } label: {
-                        Image(systemName: "photo.on.rectangle")
-                            .font(.title3)
-                            .foregroundColor(Color(.darkBackground))
-                            .frame(width: 40, height: 40)
-                    }
-                    
-                    TextField("輸入訊息或上傳照片...", text: $inputText)
-                        .textFieldStyle(.plain)
-                        .padding(20)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(20)
-                        .focused($isInputFocused)
-                        .submitLabel(.send)
-                        .onSubmit {
-                            sendMessage()
-                        }
-                    
-                    Button {
-                        sendMessage()
-                    } label: {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(inputText.isEmpty ? .gray : Color(.accent))
-                    }
-                    .disabled(inputText.isEmpty)
-                }
-                .padding()
-                .background(Color(.myMint))
+                photoPreviewView
+                
+                inputBarView
             }
         }
         .navigationTitle("體態紀錄")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showPicker) {
-            ImagePicker(image: $pickedImage, sourceType: .photoLibrary)
+            ImagePicker(image: $pickedImage, sourceType: UIImagePickerController.SourceType.photoLibrary)
         }
-        .onChange(of: showPicker) { oldValue, newValue in
+        .onChange(of: showPicker) { newValue in
             if newValue {
-                isInputFocused = false }
+                isInputFocused = false
+            }
         }
-        .onChange(of: pickedImage) { oldImage, newImage in
+        .onChange(of: pickedImage) { newImage in
             if let image = newImage {
-                print("PostureRecordView: pickedImage changed -> handling image")
-                sendImageMessage(image)
-                pickedImage = nil // 清掉後續處理
+                print("PostureRecordView: 照片已選擇，暫存到 pendingImage")
+                withAnimation {
+                    pendingImage = image // 暫存照片，不立即發送
+                }
+                pickedImage = nil
+                // 延遲聚焦以確保動畫完成
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isInputFocused = true
+                }
             }
         }
         .onAppear {
@@ -168,11 +93,144 @@ struct PostureRecordView: View {
         }
     }
     
+    // MARK: - Sub Views
+    
+    private var loadingIndicatorsView: some View {
+        Group {
+            if isLoadingHistory {
+                HStack {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                    Text("載入歷史記錄...")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemGray6))
+            }
+            
+            if isLoading {
+                HStack {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                    Text("AI 分析中...")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
+                .background(Color(.myMint).opacity(0.3))
+            }
+        }
+    }
+    
+    private var chatAreaView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    ForEach(messages) { message in
+                        MessageBubble(message: message)
+                            .id(message.id)
+                    }
+                }
+                .onTapGesture {
+                    isInputFocused = false
+                }
+                .padding()
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .simultaneousGesture(TapGesture().onEnded {
+                isInputFocused = false
+                print("PostureRecordView: scrollView tapped -> isInputFocused=false")
+            })
+            .onChange(of: messages) { newMessages in
+                if let lastMessage = newMessages.last {
+                    withAnimation {
+                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                    }
+                }
+            }
+        }
+        .background(Color(.background))
+    }
+    
+    private var photoPreviewView: some View {
+        Group {
+            if let image = pendingImage {
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("已選擇照片，請輸入你想了解的內容：")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        Spacer()
+                        Button {
+                            withAnimation {
+                                pendingImage = nil
+                                inputText = ""
+                            }
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 120)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                        .padding(.bottom, 8)
+                }
+                .background(Color(.systemGray6))
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+    }
+    
+    private var inputBarView: some View {
+        HStack(spacing: 12) {
+            Button {
+                showPicker = true
+            } label: {
+                Image(systemName: pendingImage != nil ? "photo.fill.on.rectangle.fill" : "photo.on.rectangle")
+                    .font(.title3)
+                    .foregroundColor(pendingImage != nil ? Color(.accent) : Color(.darkBackground))
+                    .frame(width: 40, height: 40)
+            }
+            
+            TextField(pendingImage != nil ? "例如：請分析我的體態..." : "輸入訊息或上傳照片...", text: $inputText)
+                .textFieldStyle(.plain)
+                .padding(15)
+                .background(Color(.systemGray6))
+                .cornerRadius(20)
+                .focused($isInputFocused)
+                .submitLabel(.send)
+                .onSubmit {
+                    sendMessage()
+                }
+            
+            Button {
+                sendMessage()
+            } label: {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.title2)
+                    .foregroundColor((inputText.isEmpty && pendingImage == nil) ? .gray : Color(.accent))
+            }
+            .disabled(inputText.isEmpty && pendingImage == nil)
+        }
+        .padding()
+        .background(Color(.myMint))
+    }
+    
     // MARK: - 載入聊天記錄
     private func loadChatHistory() {
         print("📥 [PostureRecord] 開始載入聊天記錄...")
         isLoadingHistory = true
-        
+
         chatHistoryManager.loadMessages { loadedMessages in
             DispatchQueue.main.async {
                 if loadedMessages.isEmpty {
@@ -196,14 +254,27 @@ struct PostureRecordView: View {
     
     // MARK: - 發送文字訊息
     private func sendMessage() {
-        guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let trimmedText = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let userMessage = ChatMessage(content: inputText, isUser: true)
+        // 如果有暫存的照片，發送圖片訊息
+        if let image = pendingImage {
+            sendImageMessage(image, withQuestion: trimmedText)
+            withAnimation {
+                pendingImage = nil
+            }
+            inputText = ""
+            return
+        }
+        
+        // 否則發送純文字訊息
+        guard !trimmedText.isEmpty else { return }
+        
+        let userMessage = ChatMessage(content: trimmedText, isUser: true)
         messages.append(userMessage)
         // 儲存使用者訊息到 Firestore
         chatHistoryManager.saveMessage(userMessage)
 
-        let userQuestion = inputText
+        let userQuestion = trimmedText
         inputText = ""
         
         // 顯示載入狀態
@@ -226,7 +297,6 @@ struct PostureRecordView: View {
                     let errorMessage = "😔 抱歉，我現在遇到了一些問題：\(error.localizedDescription)\n\n請稍後再試，或上傳照片讓我分析體態！"
                     let responseMessage = ChatMessage(content: errorMessage, isUser: false)
                     messages.append(responseMessage)
-                    // 儲存錯誤訊息到 Firestore
                     chatHistoryManager.saveMessage(responseMessage)
                     isLoading = false
                 }
@@ -234,11 +304,13 @@ struct PostureRecordView: View {
         }
     }
     
-    // MARK: - 發送圖片訊息
-    private func sendImageMessage(_ image: UIImage) {
-        let userMessage = ChatMessage(content: "請幫我分析這張照片的體態", image: image, isUser: true)
+    // MARK: - 發送圖片訊息（包含自訂問題）
+    private func sendImageMessage(_ image: UIImage, withQuestion question: String) {
+        // 使用者的問題，如果沒有輸入則使用預設問題
+        let userQuestion = question.isEmpty ? "請幫我分析這張照片的體態" : question
+        
+        let userMessage = ChatMessage(content: userQuestion, image: image, isUser: true)
         messages.append(userMessage)
-        // 儲存使用者訊息（含圖片）到 Firestore
         chatHistoryManager.saveMessage(userMessage)
         
         isInputFocused = false
@@ -250,11 +322,10 @@ struct PostureRecordView: View {
         // 儲存分析中訊息
         chatHistoryManager.saveMessage(analyzingMessage)
         
-        print("📸 [PostureRecord] 開始分析圖片")
+        print("📸 [PostureRecord] 開始分析圖片，使用者問題：\(userQuestion)")
         Task {
             do {
                 // 步驟 1: 使用 Vision Framework 提取關鍵點
-                print("🔍 [PostureRecord] 步驟 1: 使用 Vision Framework 分析...")
                 let keypoints = try await analyzePostureAsync(image: image)
                 print("✅ [PostureRecord] Vision 分析完成，檢測到 \(keypoints.detectedPointsCount) 個關鍵點")
                 
@@ -263,11 +334,12 @@ struct PostureRecordView: View {
                 let visionReport = PostureAnalyzer.analyze(keypoints: keypoints)
                 print("✅ [PostureRecord] 報告生成完成，長度: \(visionReport.count) 字元")
                 
-                // 步驟 3: 使用 Gemini AI 生成詳細分析
-                print("🤖 [PostureRecord] 步驟 3: 呼叫 Gemini AI...")
-                let aiResponse = try await aiService.analyzePosture(
+                // 步驟 3: 使用 Gemini AI 生成詳細分析（傳入使用者的問題）
+                print("🤖 [PostureRecord] 步驟 3: 呼叫 Gemini AI with custom question...")
+                let aiResponse = try await aiService.analyzePostureWithQuestion(
                     image: image,
-                    analysisReport: visionReport
+                    analysisReport: visionReport,
+                    userQuestion: userQuestion
                 )
                 print("✅ [PostureRecord] AI 分析完成")
                 
@@ -276,7 +348,7 @@ struct PostureRecordView: View {
                     // 移除「分析中」訊息
                     if let lastMessage = messages.last, lastMessage.content.contains("正在分析") {
                         messages.removeLast()
-                        // 也從 Firestore 刪除（可選）
+                        // 也從 Firestore 刪除
                     }
                     
                     // 顯示 AI 分析結果

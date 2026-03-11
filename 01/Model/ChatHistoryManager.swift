@@ -83,8 +83,6 @@ class ChatHistoryManager {
                     return
                 }
                 
-                print("📥 [ChatHistory] 找到 \(documents.count) 筆歷史記錄")
-                
                 var messages: [ChatMessage] = []
                 
                 for document in documents {

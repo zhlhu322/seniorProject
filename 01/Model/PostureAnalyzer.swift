@@ -63,7 +63,7 @@ struct PoseKeypoints {
     
     // 檢查是否有足夠的關鍵點
     var isValid: Bool {
-        return detectedPointsCount >= 3 // 至少需要 3 個關鍵點
+        return detectedPointsCount >= 3
     }
 }
 
