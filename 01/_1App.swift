@@ -30,10 +30,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct _1App: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
+    @StateObject private var tabBarManager = TabBarVisibilityManager()
+
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .environmentObject(tabBarManager)
         }
     }
 }

@@ -1,4 +1,3 @@
-//
 //  MyChickenMeatView.swift
 //  01
 //
@@ -6,26 +5,45 @@
 //
 
 import SwiftUI
+import Lottie
 
 struct MyChickenMeatView: View {
     @ObservedObject private var chickenManager = MyChickenManager.shared
     @State private var isLoading = false
     @State private var loadError: String?
-    
-    // 根據 XP 計算階段
+    @State private var showSeasoningView = false
+
+    // 根據 XP 計算階段名稱
     private var stageName: String {
         let xp = chickenManager.xp
-        if xp < 30 {
+        if xp < 3 {
             return "寶寶肌胸"
-        } else if xp < 60 {
+        } else if xp < 6 {
             return "健康肌胸"
-        } else if xp < 100 {
+        } else if xp < 9 {
             return "強壯肌胸"
-        } else if xp < 150 {
+        } else if xp < 12 {
             return "完美肌胸"
         } else {
             return "終極肌胸"
         }
+    }
+
+    // 根據 XP 計算對應的 idle 動畫 URL（不進行賦值，只是衍生）
+    private var idleAnimationURLString: String {
+        let xp = chickenManager.xp
+        if xp < 3 {
+            return "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fbaby_idle.json?alt=media&token=2636bbab-0463-45e4-9a8b-c5e6eff87570"
+        } else {
+            // 之後可依不同階段替換不同動畫，目前示範 healthy_idle3
+            print("使用 healthy_idle 動畫")
+            return "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_idle3.json?alt=media&token=728e7165-ac73-4ae7-8e96-a97835c43101"
+        }
+    }
+    
+    // 是否為 healthy_idle 動畫（用 XP 判斷避免 URL 版本變動）
+    private var isHealthyIdle: Bool {
+        chickenManager.xp >= 3
     }
     
     // 最大 XP（用於進度條）
@@ -191,15 +209,16 @@ struct MyChickenMeatView: View {
                     .padding(.top, 20)
                     
                     Spacer()
-                    
                     // MARK: - 角色圖片
-                    Image(chickenManager.Stage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 180, height: 216)
+                    if let url = URL(string: idleAnimationURLString) {
+                        LottieViewStorage2(url: url)
+                            .frame(width: isHealthyIdle ? 150 : 120,
+                                   height: isHealthyIdle ? 150 : 120)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 30)
+                    }
                     
                     Spacer()
-                    
                     // MARK: - 底部按鈕
                     HStack(spacing: 20) {
                         // 調味按鈕
@@ -212,21 +231,23 @@ struct MyChickenMeatView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color("PrimaryColor"))
-                                .cornerRadius(15)
+                                .cornerRadius(10)
                         }
+                        .overlay{RoundedRectangle(cornerRadius:10)
+                            .stroke(lineWidth: 1)}
                         
                         // 造型按鈕
-                        Button(action: {
-                            // TODO: 實現造型功能
-                        }) {
+                        NavigationLink(destination: ChickenStyleView()) {
                             Text("造型")
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color("PrimaryColor"))
-                                .cornerRadius(15)
+                                .cornerRadius(10)
                         }
+                        .overlay{RoundedRectangle(cornerRadius:10)
+                            .stroke(lineWidth: 1)}
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 30)
@@ -235,9 +256,8 @@ struct MyChickenMeatView: View {
         }
         .navigationBarHidden(true)
         .onAppear {
-            if chickenManager.xp == 0 && chickenManager.strength == 0 {
-                loadChickenData()
-            }
+            // 每次進入頁面都重新載入一次資料，觸發 XP 與動畫 URL 的最新判斷
+            loadChickenData()
         }
     }
     
@@ -253,11 +273,36 @@ struct MyChickenMeatView: View {
                     loadError = error.localizedDescription
                     print("❌ 載入小雞資料失敗: \(error.localizedDescription)")
                 } else {
-                    print("✅ 小雞資料已載入")
+                    print("✅ 小雞資料已載入，xp=\(chickenManager.xp)")
                 }
             }
         }
     }
+}
+
+struct LottieViewStorage2: UIViewRepresentable {
+    let url: URL
+
+    func makeUIView(context: Context) -> LottieAnimationView {
+        let view = LottieAnimationView()
+        view.contentMode = .scaleAspectFit
+        view.loopMode = .loop
+
+        LottieAnimation.loadedFrom(url: url, closure: { animation in
+            guard let animation = animation else {
+                print("❌ Lottie 動畫載入失敗")
+                return
+            }
+            DispatchQueue.main.async {
+                view.animation = animation
+                view.play()
+            }
+        }, animationCache: nil)
+
+        return view
+    }
+
+    func updateUIView(_ uiView: LottieAnimationView, context: Context) {}
 }
 
 #Preview {

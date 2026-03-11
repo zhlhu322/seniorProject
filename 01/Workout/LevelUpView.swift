@@ -11,6 +11,7 @@ struct LevelUpView: View {
     @Binding var path: [PlanRoute]
     let plan: WorkoutPlan
     @ObservedObject private var chickenManager = MyChickenManager.shared
+    @EnvironmentObject var tabBarManager: TabBarVisibilityManager
     @State private var showReward = false
     @State private var currentXP = 0
     @State private var maxXP = 0
@@ -228,7 +229,8 @@ struct LevelUpView: View {
                             showReward = true
                         }
                     } else {
-                        path.append(.home)
+                        path.removeAll()
+                        tabBarManager.update(isVisible: true)
                     }
                 }) {
                     HStack {
@@ -324,6 +326,19 @@ struct LevelUpView: View {
         var updatedFlavoring = chickenManager.flavoring
         updatedFlavoring["curry"] = oldCurry + 1
         
+        let xp2: String
+        if newXP < 3 {
+            xp2 = "chicken_baby"
+        } else if newXP < 6 {
+            xp2 = "chicken_health"
+        } else if newXP < 9 {
+            xp2 = "chicken_strong"
+        } else if newXP < 12 {
+            xp2 = "完美肌胸"
+        } else {
+            xp2 = "終極肌胸"
+        }
+    
         // 更新到 MyChickenManager
         chickenManager.xp = newXP
         chickenManager.strength = newStrength
@@ -331,6 +346,7 @@ struct LevelUpView: View {
         chickenManager.flexibility = newFlexibility
         chickenManager.aminoCoin = newAminoCoin
         chickenManager.flavoring = updatedFlavoring
+        chickenManager.Stage = xp2
         
         print("📊 更新小雞資料:")
         print("  XP: \(oldXP) -> \(newXP) (+\(gainedXP))")

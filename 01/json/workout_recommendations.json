@@ -15,9 +15,8 @@
             "name": "上肢訓練",
             "details": [
                 { "id": "1", "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 10 ,"lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "biceps"},
-                { "id": "2", "name": "肩推","sets": 1,"targetCount":5, "rest_seconds": 10 ,"lottie_url": "https://cdn.lottielab.com/l/7C2E4GWRTSPVc0.json", "image_name": "shoulder_press"},
-                { "id": "3", "name": "手臂伸展","sets": 2,"targetCount":5, "rest_seconds": 10, "lottie_url": "https://cdn.lottielab.com/l/9eUKBNaPSH5ExU.json", "image_name": "elbow_extension"},
-                { "id": "5", "name": "划船","sets": 1,"targetCount":5, "rest_seconds": 7 , "lottie_url": "https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json" , "image_name": "seated_row"}
+                { "id": "3", "name": "手臂伸展","sets": 2,"targetCount":3, "rest_seconds": 10, "lottie_url": "https://cdn.lottielab.com/l/9eUKBNaPSH5ExU.json", "image_name": "elbow_extension"},
+                { "id": "5", "name": "划船","sets": 1,"targetCount":3, "rest_seconds": 7 , "lottie_url": "https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json" , "image_name": "seated_row"}
             ]
         },
         {
