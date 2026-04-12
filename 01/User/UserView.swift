@@ -11,6 +11,8 @@ enum UserRoute: Hashable {
     case monthlySports
     case bodyRecord
     case userWorkoutsHistory
+    case weeklyChart
+    case workoutAnalysis(AnalysisTab)
 }
 
 struct MenuRowButton: View {
@@ -83,21 +85,44 @@ struct UserView: View {
                 
                 
                 HStack(spacing:15){
-                    StatsCardView(
-                        iconName: "timer",
-                        value: authVM.isLoggedIn ? formatDuration(historyManager.getTotalWorkoutTime()) : "0分鐘",
-                        label: "運動時數"
-                    )
-                    StatsCardView(
-                        iconName: "flame",
-                        value: authVM.isLoggedIn ? "\(historyManager.getConsecutiveDays())天" : "0天",
-                        label: "連續紀錄"
-                    )
-                    StatsCardView(
-                        iconName: "dumbbell",
-                        value: authVM.isLoggedIn ? "\(historyManager.getTotalWorkoutCount())次" : "0次",
-                        label: "完成訓練"
-                    )
+                    Button {
+                        if authVM.isLoggedIn {
+                            path.append(.workoutAnalysis(.monthlyHours))
+                        }
+                    } label: {
+                        StatsCardView(
+                            iconName: "timer",
+                            value: authVM.isLoggedIn ? formatDuration(historyManager.getMonthlyWorkoutTime()) : "0分鐘",
+                            label: "運動時數"
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Button {
+                        if authVM.isLoggedIn {
+                            path.append(.workoutAnalysis(.consecutive))
+                        }
+                    } label: {
+                        StatsCardView(
+                            iconName: "flame",
+                            value: authVM.isLoggedIn ? "\(historyManager.getConsecutiveDays())天" : "0天",
+                            label: "連續紀錄"
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Button {
+                        if authVM.isLoggedIn {
+                            path.append(.workoutAnalysis(.weeklyCount))
+                        }
+                    } label: {
+                        StatsCardView(
+                            iconName: "dumbbell",
+                            value: authVM.isLoggedIn ? "\(historyManager.getMonthlyWorkoutCount())次" : "0次",
+                            label: "完成訓練"
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
                 .padding(.horizontal,15)
                 .padding(.vertical,40)
@@ -139,18 +164,14 @@ struct UserView: View {
 #Preview("已登入狀態") {
     UserView(selectedTab: .constant(.user), path: .constant([]))
         .onAppear {
-            // 在 View 出現時，設定 ViewModel 的假資料
-            let vm = AuthenticationViewModel.shared
-            vm.isLoggedIn = true
-            vm.currentUserName = "測試使用者"
-            vm.currentUserEmail = "preview-user@example.com"
+            AuthenticationViewModel.shared.loginAsMockUser()
+            WorkoutHistoryManager.shared.loadMockData()
         }
 }
 
 #Preview("未登入狀態") {
     UserView(selectedTab: .constant(.user), path: .constant([]))
         .onAppear {
-            // 在 View 出現時，將 ViewModel 恢復為登出狀態
             let vm = AuthenticationViewModel.shared
             vm.isLoggedIn = false
             vm.currentUserName = ""

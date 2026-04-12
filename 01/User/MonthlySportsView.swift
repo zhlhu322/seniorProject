@@ -74,6 +74,7 @@ struct MonthlySportsView: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.bottom, 20)
             }
             .background(Color(.white))
 
@@ -157,6 +158,10 @@ struct MonthlySportsView: View {
                 MonthlySportsView()
             case .bodyRecord:
                 EmptyView() // 如果有身體記錄頁面，可以在這裡添加
+            case .weeklyChart:
+                WeeklyWorkoutChartView()
+            case .workoutAnalysis(let tab):
+                WorkoutAnalysisView(initialTab: tab)
             }
         }
         .onAppear {
@@ -287,21 +292,23 @@ struct DayCell: View {
     let date: Date
     let isWorkoutDay: Bool
     let isToday: Bool
-    
+
     private let calendar = Calendar.current
-    
+
     var body: some View {
         ZStack {
-            if isWorkoutDay {
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(Color(.primary)).opacity(0.8)
-            }
+            Circle()
+                .fill(
+                    isWorkoutDay
+                        ? Color(.primary)
+                        : Color.gray.opacity(0.08)
+                )
             Text("\(calendar.component(.day, from: date))")
-                .font(.headline)
-                .fontWeight(isToday ? .heavy : .regular)
+                .font(.caption2)
+                .fontWeight(isToday ? .bold : .regular)
                 .foregroundColor(isWorkoutDay ? .white : Color(.darkBackground))
         }
-        .frame(height: 40)
+        .frame(height: 36)
     }
 }
 

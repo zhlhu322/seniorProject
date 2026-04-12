@@ -14,9 +14,10 @@ class WorkoutHistoryManager: ObservableObject {
     
     @Published var recentWorkouts: [WorkoutHistory] = []
     @Published var monthlyWorkouts: [WorkoutHistory] = []
-    
+    @Published var weeklyWorkoutCounts: [(label: String, count: Int)] = []
+
     private let db = Firestore.firestore()
-    
+
     private init() {}
     
     // MARK: - 儲存運動記錄到 Firestore
@@ -174,8 +175,9 @@ class WorkoutHistoryManager: ObservableObject {
                     let workoutDate = workout.completedAt.dateValue()
                     return workoutDate >= startDate && workoutDate < endDate
                 }.sorted { $0.completedAt.dateValue() < $1.completedAt.dateValue() }
-                
+
                 print("✅ 載入了 \(self.monthlyWorkouts.count) 筆該月運動記錄")
+                self.computeWeeklyWorkoutCounts()
             }
     }
     
@@ -207,32 +209,85 @@ class WorkoutHistoryManager: ObservableObject {
     func getTotalWorkoutTime() -> Int {
         return recentWorkouts.reduce(0) { $0 + $1.totalDuration }
     }
-    
+
     func getTotalWorkoutCount() -> Int {
         return recentWorkouts.count
+    }
+
+    /// 本月總運動時間（秒）
+    func getMonthlyWorkoutTime() -> Int {
+        return monthlyWorkouts.reduce(0) { $0 + $1.totalDuration }
+    }
+
+    /// 本月完成訓練次數
+    func getMonthlyWorkoutCount() -> Int {
+        return monthlyWorkouts.count
     }
     
     func getConsecutiveDays() -> Int {
         guard !monthlyWorkouts.isEmpty else { return 0 }
-        
+
         let calendar = Calendar.current
-        let sortedDates = monthlyWorkouts
-            .map { calendar.startOfDay(for: $0.completedAt.dateValue()) }
-            .sorted(by: >)
-        
+
+        // 去重：同一天多筆訓練只算一天
+        let uniqueSortedDates = Array(
+            Set(monthlyWorkouts.map { calendar.startOfDay(for: $0.completedAt.dateValue()) })
+        ).sorted(by: >)
+
+        guard !uniqueSortedDates.isEmpty else { return 0 }
+
         var consecutiveDays = 1
-        var previousDate = sortedDates[0]
-        
-        for date in sortedDates.dropFirst() {
-            if let daysDifference = calendar.dateComponents([.day], from: date, to: previousDate).day,
-               daysDifference == 1 {
+        var previousDate = uniqueSortedDates[0]
+
+        for date in uniqueSortedDates.dropFirst() {
+            if let diff = calendar.dateComponents([.day], from: date, to: previousDate).day,
+               diff == 1 {
                 consecutiveDays += 1
                 previousDate = date
             } else {
                 break
             }
         }
-        
+
         return consecutiveDays
+    }
+    
+    // MARK: - 計算本月每週訓練次數（從 monthlyWorkouts 衍生，用於WeeklyWorkoutCharts）
+    func computeWeeklyWorkoutCounts() {
+        let calendar = Calendar.current
+        let now = Date()
+
+        guard let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
+              let range = calendar.range(of: .day, in: .month, for: now) else {
+            weeklyWorkoutCounts = []
+            return
+        }
+
+        let daysInMonth = range.count
+        var weeks: [(label: String, count: Int)] = []
+        var weekStart = 0
+        var weekNum = 1
+
+        while weekStart < daysInMonth {
+            let weekEnd = min(weekStart + 7, daysInMonth)
+
+            guard let weekStartDate = calendar.date(byAdding: .day, value: weekStart, to: startOfMonth),
+                  let weekEndDate  = calendar.date(byAdding: .day, value: weekEnd,  to: startOfMonth) else {
+                weekStart += 7
+                weekNum += 1
+                continue
+            }
+
+            let count = monthlyWorkouts.filter {
+                let d = $0.completedAt.dateValue()
+                return d >= weekStartDate && d < weekEndDate
+            }.count
+
+            weeks.append((label: "第\(weekNum)週", count: count))
+            weekStart += 7
+            weekNum += 1
+        }
+
+        weeklyWorkoutCounts = weeks
     }
 }

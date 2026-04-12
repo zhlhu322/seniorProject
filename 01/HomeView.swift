@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Binding var path: [PlanRoute]
-    let week = ["週一","週二","週三","週四","週五","週六","週日"]
+    let week = ["週日","週一","週二","週三","週四","週五","週六"]
     @StateObject var viewModel = WorkoutWeekViewModel()
     @StateObject var historyManager = WorkoutHistoryManager.shared
     
@@ -17,7 +17,7 @@ struct HomeView: View {
         let calendar = Calendar.current
         let today = Date()
         let weekday = calendar.component(.weekday, from: today) // 1: Sunday ~ 7: Saturday
-        let startOfWeek = calendar.date(byAdding: .day, value: -((weekday + 5) % 7), to: today)!
+        let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 1), to: today)!
         return calendar.date(byAdding: .day, value: offset, to: startOfWeek)!
     }
     
@@ -95,7 +95,7 @@ struct HomeView: View {
                                 .minimumScaleFactor(0.8)
                             Image(systemName: "flame.fill")
                                 .font(.system(size:28))
-                                .foregroundStyle(didWorkout ? .red : Color(.lightGray))
+                                .foregroundStyle(didWorkout ? .accent : Color(.lightGray))
                         }
                         .frame(maxWidth: .infinity)
                     }

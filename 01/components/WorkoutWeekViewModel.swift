@@ -20,7 +20,8 @@ class WorkoutWeekViewModel: ObservableObject {
         let calendar = Calendar.current
         let today = Date()
         let weekday = calendar.component(.weekday, from: today) // 1: Sunday ~ 7: Saturday
-        let startOfWeek = calendar.date(byAdding: .day, value: -((weekday + 5) % 7), to: today)! // 調整成週一
+        let startOfToday = calendar.startOfDay(for: today)
+        let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 1), to: startOfToday)! // 調整成週日
         let endOfWeek = calendar.date(byAdding: .day, value: 7, to: startOfWeek)!
         
         print("🔍 開始載入本週運動記錄...")
