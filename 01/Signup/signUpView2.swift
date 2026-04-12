@@ -9,6 +9,7 @@ import SwiftUI
 
 struct signUpView2: View {
     @Binding var path: [PlanRoute]
+    @EnvironmentObject var tabBarManager: TabBarVisibilityManager
     
     func updateUserRole(_ roleID: Int) {
         AuthenticationViewModel.shared.updateUserRole(roleID: roleID)
@@ -17,7 +18,7 @@ struct signUpView2: View {
     
     var body: some View {
             ZStack{
-                Color(.mint).ignoresSafeArea()
+                Color(.myMint).ignoresSafeArea()
                 VStack{
                     Text("選擇你的第一隻肌胸肉：")
                         .font(.title3)
@@ -30,7 +31,8 @@ struct signUpView2: View {
                         Button(action: {
                             // 註冊成功後跳轉首頁
                             updateUserRole(1)
-                            path.append(.home)
+                            path.removeAll()
+                            tabBarManager.update(isVisible: true)
                         }) {
                             VStack {
                                 Image("chicken_baby")
@@ -54,8 +56,9 @@ struct signUpView2: View {
                         
                         Button(action: {
                             // 註冊成功後跳轉首頁
-                            updateUserRole(2)
-                            path.append(.home)
+                            path.removeAll()
+                            tabBarManager.update(isVisible: true)
+
                         }) {
                             VStack {
                                 Image("chicken_health")
@@ -84,7 +87,8 @@ struct signUpView2: View {
                         Button(action: {
                             // 註冊成功後跳轉首頁
                             updateUserRole(3)
-                            path.append(.home)
+                            path.removeAll()
+                            tabBarManager.update(isVisible: true)
                         }) {
                             VStack {
                                 Image("chicken_thin")
@@ -109,7 +113,8 @@ struct signUpView2: View {
                         Button(action: {
                             // 註冊成功後跳轉首頁
                             updateUserRole(4)
-                            path.append(.home)
+                            path.removeAll()
+                            tabBarManager.update(isVisible: true)
                         }) {
                             VStack {
                                 Image("chicken_fat")

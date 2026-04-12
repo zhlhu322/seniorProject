@@ -15,7 +15,8 @@ struct MainTabView: View {
     @State private var planPath: [PlanRoute] = []
     @State private var userPath: [UserRoute] = []
     @ObservedObject var authVM = AuthenticationViewModel.shared
-    
+    @EnvironmentObject var tabBarManager: TabBarVisibilityManager
+
     var body: some View {
         TabView(selection: $selectedTab) {
             // 商店 tab
@@ -48,7 +49,7 @@ struct MainTabView: View {
                 }
             }
             // 將 tab bar 可見性附加在 NavigationStack 層級，立即生效
-            .toolbar(planPath.isEmpty ? .visible : .hidden, for: .tabBar)
+            .toolbar((planPath.isEmpty && tabBarManager.isVisible) ? .visible : .hidden, for: .tabBar)
             .animation(.easeInOut(duration: 0.1), value: planPath.isEmpty)
             .tabItem {
                 Label("主頁", systemImage: "house.fill")
@@ -79,7 +80,7 @@ struct MainTabView: View {
                     }
              }
              // 將 tab bar 可見性附加在 NavigationStack 層級，立即生效
-             .toolbar(userPath.isEmpty ? .visible : .hidden, for: .tabBar)
+             .toolbar((userPath.isEmpty && tabBarManager.isVisible) ? .visible : .hidden, for: .tabBar)
              .animation(.easeInOut(duration: 0.2), value: userPath.isEmpty)
              .tabItem {
                  Label("使用者", systemImage: "person.fill")
