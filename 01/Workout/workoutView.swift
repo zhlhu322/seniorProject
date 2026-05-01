@@ -13,11 +13,11 @@ struct workoutView: View {
     let exerciseIndex: Int
     let setIndex: Int
     @EnvironmentObject var bluetoothManager: BluetoothManager
-
+    
     var currentExercise: PlanDetails {
         plan.details[exerciseIndex]
     }
-
+    
     var body: some View {
         VStack(alignment: .center) {
             HStack{
@@ -44,9 +44,17 @@ struct workoutView: View {
                 .frame(height:UIScreen.main.bounds.height*0.15)
             
             VStack {
-                Text("目前次數： \(bluetoothManager.currentCount)/\(currentExercise.targetCount ?? 1)")  // 顯示目前次數
-                    .foregroundColor(Color(.white))
-                    .font(.system(size: 20))
+                HStack{
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("目前")
+                        Text("次數")
+                    }
+                    .foregroundColor(.white)
+                    .font(.system(size: 35))
+                    Text("\(bluetoothManager.currentCount)/\(currentExercise.targetCount ?? 1)")
+                        .foregroundColor(Color(.white))
+                        .font(.system(size: 80))
+                }
                 LottieView {
                     await LottieAnimation.loadedFrom(url: URL(string: currentExercise.lottie_url)!)
                 }
@@ -100,7 +108,7 @@ struct workoutView: View {
                 }
             }
         }
-
+        
     }
 }
 
@@ -110,7 +118,7 @@ struct workoutView: View {
 //        Exercise(id: "squat", name:"深蹲", sets: 2, targetCount: 20, targetTime: nil, rest_seconds: 45,lottie_url:"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json")
 //    ]
 //    let samplePlan = WorkoutPlan(name: "上肢訓練", exercises: sampleExercises)
-//    
+//
 //    workoutView(path: .constant([]), plan: samplePlan, exerciseIndex: 1, setIndex: 0)
 //        .environmentObject(BluetoothManager())
 //}

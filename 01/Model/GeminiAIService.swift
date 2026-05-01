@@ -52,7 +52,7 @@ class GeminiAIService {
     /// 初始化 - 優先使用傳入的 apiKey；若未提供，從 Info.plist 的 GEMINI_API_KEY 讀取；找不到時會設為空字串（會導致呼叫時拋出錯誤）
     init(apiKey: String? = nil) {
             // 如果初始化時有傳入則用傳入的，否則統一從 AppEnvironment 抓
-            let finalKey = apiKey ?? AppEnvironment.geminiAPIKey
+            let finalKey = apiKey ?? ProcessInfo.processInfo.environment["GEMINI_API_KEY"] ?? ""
             
             if finalKey.isEmpty {
                 print("⚠️ 警告：Gemini API Key 為空，請求將會失敗")

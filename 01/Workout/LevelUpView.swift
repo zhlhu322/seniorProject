@@ -14,10 +14,12 @@ struct LevelUpView: View {
     @EnvironmentObject var tabBarManager: TabBarVisibilityManager
     @State private var showReward = false
     @State private var currentXP = 0
+    @State private var displayedXP = 0
     @State private var maxXP = 0
     @State private var isLoading = false
     @State private var isUpdating = false
     @State private var hasLoadedData = false
+    @State private var xpAnimationTask: Task<Void, Never>?
     
     // 每個動作對應的能力值加成
     private let exerciseStats: [String: (strength: Int, endurance: Int, flexibility: Int)] = [
@@ -60,7 +62,7 @@ struct LevelUpView: View {
     
     // 計算獲得的氨基酸（無條件進位）
     private var aminoCoin: Int {
-        return Int(ceil(Double(fitnessScore) / 3.0))
+        return Int(ceil(Double(fitnessScore) * 15))
     }
     
     // XP 增加量等於健身分數
@@ -136,7 +138,7 @@ struct LevelUpView: View {
             } else {
                 VStack(spacing: 15) {
                     HStack {
-                        Text("XP \(currentXP)/\(maxXP)")
+                        Text("XP \(displayedXP)/\(maxXP)")
                             .font(.headline)
                             .foregroundColor(Color.brown)
                         
@@ -157,7 +159,7 @@ struct LevelUpView: View {
                             if maxXP > 0 {
                                 Rectangle()
                                     .fill(Color(.accent))
-                                    .frame(width: max(0, min(geometry.size.width, geometry.size.width * CGFloat(currentXP) / CGFloat(maxXP))))
+                                    .frame(width: max(0, min(geometry.size.width, geometry.size.width * CGFloat(displayedXP) / CGFloat(maxXP))))
                                     .cornerRadius(4)
                             }
                         }
@@ -273,6 +275,9 @@ struct LevelUpView: View {
             print("獲得氨基酸: \(aminoCoin)")
             print("獲得 XP: \(gainedXP)")
         }
+        .onDisappear {
+            xpAnimationTask?.cancel()
+        }
     }
     
     // MARK: - 載入小雞資料
@@ -286,7 +291,9 @@ struct LevelUpView: View {
                 } else {
                     hasLoadedData = true
                     currentXP = chickenManager.xp
-                    maxXP = 100  // 可以根據需要調整
+                    displayedXP = chickenManager.xp
+                    maxXP = 10  // 可以根據需要調整
+                    startXPAnimation()
                     print("✅ 小雞資料已載入")
                     print("當前 XP: \(chickenManager.xp)")
                     print("當前力量: \(chickenManager.strength)")
@@ -326,18 +333,12 @@ struct LevelUpView: View {
         var updatedFlavoring = chickenManager.flavoring
         updatedFlavoring["curry"] = oldCurry + 1
         
-        let xp2: String
-        if newXP < 3 {
-            xp2 = "chicken_baby"
-        } else if newXP < 6 {
-            xp2 = "chicken_health"
-        } else if newXP < 9 {
-            xp2 = "chicken_strong"
-        } else if newXP < 12 {
-            xp2 = "完美肌胸"
-        } else {
-            xp2 = "終極肌胸"
-        }
+        let xp2 = {
+            if newXP < 0 { return "baby" }
+            else if newXP < 10 { return "health" }
+            else if newXP < 20 { return "strong" }
+            else { return "ultimate" }
+        }()
     
         // 更新到 MyChickenManager
         chickenManager.xp = newXP
@@ -365,6 +366,34 @@ struct LevelUpView: View {
                 } else {
                     print("✅ 小雞資料已成功更新到 Firebase")
                     currentXP = newXP
+                    displayedXP = newXP
+                }
+            }
+        }
+    }
+
+    private func startXPAnimation() {
+        xpAnimationTask?.cancel()
+
+        let startXP = currentXP
+        let endXP = currentXP + gainedXP
+        displayedXP = startXP
+
+        guard endXP > startXP else { return }
+
+        let stepCount = endXP - startXP
+        let stepDuration = min(0.08, 1.2 / Double(stepCount))
+
+        xpAnimationTask = Task {
+            for value in (startXP + 1)...endXP {
+                try? await Task.sleep(nanoseconds: UInt64(stepDuration * 1_000_000_000))
+
+                if Task.isCancelled { return }
+
+                await MainActor.run {
+                    withAnimation(.linear(duration: stepDuration)) {
+                        displayedXP = value
+                    }
                 }
             }
         }

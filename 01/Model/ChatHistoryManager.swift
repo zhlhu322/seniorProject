@@ -29,8 +29,16 @@ class ChatHistoryManager {
     
     // MARK: - 儲存訊息
     /// 儲存單一聊天訊息到 Firestore
-    func saveMessage(_ message: ChatMessage) {
-        guard let chatRef = getChatCollectionRef() else { return }
+    func saveMessage(_ message: ChatMessage, completion: ((Result<Void, Error>) -> Void)? = nil) {
+        guard let chatRef = getChatCollectionRef() else {
+            let error = NSError(
+                domain: "ChatHistory",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "無法獲取使用者聊天集合"]
+            )
+            completion?(.failure(error))
+            return
+        }
         
         var messageData: [String: Any] = [
             "id": message.id.uuidString,
@@ -52,8 +60,10 @@ class ChatHistoryManager {
         chatRef.document(message.id.uuidString).setData(messageData) { error in
             if let error = error {
                 print("❌ [ChatHistory] 儲存失敗: \(error.localizedDescription)")
+                completion?(.failure(error))
             } else {
                 print("✅ [ChatHistory] 訊息已儲存到 Firestore")
+                completion?(.success(()))
             }
         }
     }

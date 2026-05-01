@@ -34,14 +34,17 @@ struct restView: View {
             }
             .padding()
             
-            Spacer().frame(height:100)
+            Spacer().frame(height:50)
             
             VStack {
-                Text("休息").foregroundColor(Color(.white))
-                    .font(.system(size: 32))
-                Text("倒數計時：\(timeRemaining)")
-                    .foregroundColor(Color(.white))
-                    .font(.system(size: 20))
+                HStack(alignment: .firstTextBaseline, spacing: 16) {
+                    Text("休息")
+                        .foregroundColor(.white)
+                        .font(.system(size: 35))
+                    Text("\(timeRemaining)秒")
+                        .foregroundColor(.white)
+                        .font(.system(size: 80, weight: .bold))
+                }
                 ZStack {
                     Color("PrimaryColor")        // 背景色
                         .frame(width: 300, height: 300)
