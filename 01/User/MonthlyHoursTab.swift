@@ -10,37 +10,38 @@ import Charts
 
 struct MonthlyHoursTab: View {
     @ObservedObject private var historyManager = WorkoutHistoryManager.shared
+    @State private var displayedDate: Date = Date()
+    @State private var cachedDailyMinutes: [(day: Int, minutes: Double)] = []
+    @State private var cachedTotalMinutes: Double = 0
+    @State private var cachedMaxMinutes: Double = 1
     private let calendar = Calendar.current
 
-    private var daysInMonth: Int {
-        calendar.range(of: .day, in: .month, for: Date())?.count ?? 30
-    }
-
-    private var dailyMinutes: [(day: Int, minutes: Double)] {
-        var map: [Int: Double] = [:]
-        for workout in historyManager.monthlyWorkouts {
-            let day = calendar.component(.day, from: workout.completedAt.dateValue())
-            map[day, default: 0] += Double(workout.totalDuration) / 60.0
-        }
-        return (1...daysInMonth).map { day in
-            (day: day, minutes: map[day] ?? 0)
-        }
-    }
-
-    private var totalMinutes: Double {
-        dailyMinutes.reduce(0) { $0 + $1.minutes }
-    }
-
-    private var maxMinutes: Double {
-        max(dailyMinutes.map { $0.minutes }.max() ?? 0, 1)
-    }
-
-    private var currentMonthString: String {
+    // 只建立一次，避免每次 render 重新 alloc
+    private static let longFormatter: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "zh_TW")
         f.dateFormat = "yyyy年M月"
-        return f.string(from: Date())
+        return f
+    }()
+    private static let shortFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "zh_TW")
+        f.dateFormat = "yyyy/M"
+        return f
+    }()
+
+    private var displayedYear: Int { calendar.component(.year, from: displayedDate) }
+    private var displayedMonth: Int { calendar.component(.month, from: displayedDate) }
+
+    private var isCurrentMonth: Bool {
+        calendar.isDate(displayedDate, equalTo: Date(), toGranularity: .month)
     }
+
+    private var daysInMonth: Int {
+        calendar.range(of: .day, in: .month, for: displayedDate)?.count ?? 30
+    }
+
+    private var currentMonthString: String { Self.longFormatter.string(from: displayedDate) }
 
     var body: some View {
         ScrollView {
@@ -51,6 +52,29 @@ struct MonthlyHoursTab: View {
             .padding(.top, 20)
         }
         .background(Color(.background))
+        .onAppear {
+            loadData()
+            recomputeCache(from: historyManager.monthlyWorkouts)
+        }
+        .onChange(of: historyManager.monthlyWorkouts) { _, workouts in
+            recomputeCache(from: workouts)
+        }
+    }
+
+    // MARK: - 快取計算（避免 body 每次 render 都重複運算）
+    private func recomputeCache(from workouts: [WorkoutHistory]) {
+        var map: [Int: Double] = [:]
+        for workout in workouts {
+            let day = calendar.component(.day, from: workout.completedAt.dateValue())
+            map[day, default: 0] += Double(workout.totalDuration) / 60.0
+        }
+        let daily = (1...max(daysInMonth, 1)).map { day in
+            (day: day, minutes: map[day] ?? 0)
+        }
+        cachedDailyMinutes = daily
+        cachedTotalMinutes = daily.reduce(0) { $0 + $1.minutes }
+        let m = daily.map { $0.minutes }.max() ?? 0
+        cachedMaxMinutes = max(m.isNaN || m.isInfinite ? 0 : m, 1)
     }
 
     // MARK: - 本月總覽卡片
@@ -69,7 +93,7 @@ struct MonthlyHoursTab: View {
                 Text(currentMonthString)
                     .font(.caption)
                     .foregroundColor(.gray)
-                Text(formatMinutes(totalMinutes))
+                Text(formatMinutes(cachedTotalMinutes))
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(Color(.darkBackground))
@@ -92,12 +116,16 @@ struct MonthlyHoursTab: View {
     // MARK: - 折線圖卡片
     private var chartCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("每日運動時數")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(Color(.darkBackground))
+            HStack {
+                Text("每日運動時數")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(.darkBackground))
+                Spacer()
+                monthNavigation
+            }
 
-            if totalMinutes == 0 {
+            if cachedTotalMinutes == 0 {
                 emptyPlaceholder
             } else {
                 lineChart
@@ -113,9 +141,32 @@ struct MonthlyHoursTab: View {
         .padding(.horizontal, 20)
     }
 
+    // MARK: - 月份切換元件
+    private var monthNavigation: some View {
+        HStack(spacing: 10) {
+            Button(action: previousMonth) {
+                Image(systemName: "chevron.left")
+                    .font(.caption)
+                    .foregroundColor(Color(.darkBackground))
+            }
+            Text(shortMonthString)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .frame(minWidth: 50, alignment: .center)
+            Button(action: nextMonth) {
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(isCurrentMonth ? Color.gray.opacity(0.3) : Color(.darkBackground))
+            }
+            .disabled(isCurrentMonth)
+        }
+    }
+
+    private var shortMonthString: String { Self.shortFormatter.string(from: displayedDate) }
+
     // MARK: - Swift Charts 折線圖
     private var lineChart: some View {
-        Chart(dailyMinutes, id: \.day) { point in
+        Chart(cachedDailyMinutes, id: \.day) { point in
             AreaMark(
                 x: .value("日", point.day),
                 y: .value("分鐘", point.minutes)
@@ -137,7 +188,7 @@ struct MonthlyHoursTab: View {
             .interpolationMethod(.catmullRom)
         }
         .chartXScale(domain: 1...daysInMonth)
-        .chartYScale(domain: 0...(maxMinutes * 1.25))
+        .chartYScale(domain: 0...(cachedMaxMinutes * 1.25))
         .chartXAxis {
             AxisMarks(values: stride(from: 1, through: daysInMonth, by: 7).map { $0 }) { value in
                 AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [4, 4]))
@@ -170,7 +221,7 @@ struct MonthlyHoursTab: View {
             Image(systemName: "chart.line.uptrend.xyaxis")
                 .font(.system(size: 36))
                 .foregroundColor(.gray.opacity(0.4))
-            Text("本月尚無運動紀錄")
+            Text("該月尚無運動紀錄")
                 .font(.subheadline)
                 .foregroundColor(.gray)
         }
@@ -179,6 +230,25 @@ struct MonthlyHoursTab: View {
     }
 
     // MARK: - 輔助方法
+    private func loadData() {
+        historyManager.loadMonthlyWorkouts(year: displayedYear, month: displayedMonth)
+    }
+
+    private func previousMonth() {
+        if let newDate = calendar.date(byAdding: .month, value: -1, to: displayedDate) {
+            displayedDate = newDate
+            loadData()
+        }
+    }
+
+    private func nextMonth() {
+        guard !isCurrentMonth else { return }
+        if let newDate = calendar.date(byAdding: .month, value: 1, to: displayedDate) {
+            displayedDate = newDate
+            loadData()
+        }
+    }
+
     private func formatMinutes(_ minutes: Double) -> String {
         let total = Int(minutes)
         if total < 60 { return "\(total)分鐘" }

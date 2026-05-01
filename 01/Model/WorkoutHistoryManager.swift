@@ -18,6 +18,13 @@ class WorkoutHistoryManager: ObservableObject {
 
     private let db = Firestore.firestore()
 
+    /// 目前已載入的月份，用來跳過重複的 Firestore 請求
+    private var cachedYear: Int? = nil
+    private var cachedMonth: Int? = nil
+
+    /// 防止同時打出多個 loadMonthlyWorkouts 請求
+    private var isLoadingMonthly = false
+
     private init() {}
     
     // MARK: - 儲存運動記錄到 Firestore
@@ -70,61 +77,76 @@ class WorkoutHistoryManager: ObservableObject {
         }
     }
     
+    // MARK: - 預載當月資料（app 啟動或登入後立即呼叫，減少進入分析頁的卡頓）
+    func preloadCurrentMonth() {
+        let components = Calendar.current.dateComponents([.year, .month], from: Date())
+        if let year = components.year, let month = components.month {
+            loadMonthlyWorkouts(year: year, month: month)
+        }
+        loadRecentWorkouts()
+    }
+
     // MARK: - 載入最近的運動記錄（用於主頁顯示）
+    // 注意：此查詢需要 Firestore 複合索引 (userId ASC, completedAt DESC)
+    // 若出現 index 錯誤，請依 Firestore 錯誤訊息中的連結建立索引
     func loadRecentWorkouts(limit: Int = 5) {
         guard let userId = Auth.auth().currentUser?.uid else {
             print("⚠️ 使用者未登入，無法載入運動記錄")
             return
         }
-        
+
         print("🔍 開始載入使用者 \(userId) 的運動記錄...")
-        
+
         db.collection("workoutHistory")
             .whereField("userId", isEqualTo: userId)
+            .order(by: "completedAt", descending: true)
+            .limit(to: limit)
             .getDocuments { snapshot, error in
                 if let error = error {
                     print("❌ 載入最近運動記錄失敗: \(error.localizedDescription)")
-                    print("💡 錯誤詳情: \(error)")
                     return
                 }
-                
+
                 guard let documents = snapshot?.documents else {
-                    print("⚠️ 沒有運動記錄")
                     self.recentWorkouts = []
                     return
                 }
-                
+
                 print("📦 找到 \(documents.count) 筆文件")
-                
-                // 解析所有文件
-                let allWorkouts = documents.compactMap { doc -> WorkoutHistory? in
+
+                self.recentWorkouts = documents.compactMap { doc -> WorkoutHistory? in
                     do {
-                        let workout = try doc.data(as: WorkoutHistory.self)
-                        print("✅ 成功解析: \(workout.planName) - \(workout.completedAt.dateValue())")
-                        return workout
+                        return try doc.data(as: WorkoutHistory.self)
                     } catch {
                         print("❌ 解析失敗: \(error)")
                         return nil
                     }
                 }
-                
-                // 按時間排序並取前 N 筆
-                self.recentWorkouts = allWorkouts
-                    .sorted { $0.completedAt.dateValue() > $1.completedAt.dateValue() }
-                    .prefix(limit)
-                    .map { $0 }
-                
+
                 print("✅ 載入了 \(self.recentWorkouts.count) 筆最近運動記錄")
             }
     }
     
     // MARK: - 載入指定月份的運動記錄（用於 MonthlySports 頁面）
-    func loadMonthlyWorkouts(year: Int, month: Int) {
+    func loadMonthlyWorkouts(year: Int, month: Int, forceReload: Bool = false) {
         guard let userId = Auth.auth().currentUser?.uid else {
             print("⚠️ 使用者未登入，無法載入運動記錄")
             return
         }
-        
+
+        // 同一月份已載入且非強制更新，直接跳過，避免重複打 Firestore
+        if !forceReload && cachedYear == year && cachedMonth == month && !monthlyWorkouts.isEmpty {
+            print("⚡ \(year)年\(month)月 資料已快取，跳過 Firestore 請求")
+            return
+        }
+
+        // 防止同時打出多個相同請求（進入分析頁時多個 tab 同時觸發）
+        guard !isLoadingMonthly else {
+            print("⚡ 已有請求進行中，跳過重複的 loadMonthlyWorkouts")
+            return
+        }
+        isLoadingMonthly = true
+
         print("🔍 開始載入 \(year)年\(month)月 的運動記錄...")
         
         // 計算該月的起始和結束日期
@@ -149,12 +171,14 @@ class WorkoutHistoryManager: ObservableObject {
                 if let error = error {
                     print("❌ 載入月份運動記錄失敗: \(error.localizedDescription)")
                     print("💡 錯誤詳情: \(error)")
+                    self.isLoadingMonthly = false
                     return
                 }
-                
+
                 guard let documents = snapshot?.documents else {
                     print("⚠️ 該月沒有運動記錄")
                     self.monthlyWorkouts = []
+                    self.isLoadingMonthly = false
                     return
                 }
                 
@@ -177,6 +201,9 @@ class WorkoutHistoryManager: ObservableObject {
                 }.sorted { $0.completedAt.dateValue() < $1.completedAt.dateValue() }
 
                 print("✅ 載入了 \(self.monthlyWorkouts.count) 筆該月運動記錄")
+                self.cachedYear = year
+                self.cachedMonth = month
+                self.isLoadingMonthly = false
                 self.computeWeeklyWorkoutCounts()
             }
     }

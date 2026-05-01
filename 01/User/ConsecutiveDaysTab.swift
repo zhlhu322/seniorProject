@@ -9,33 +9,46 @@ import SwiftUI
 
 struct ConsecutiveDaysTab: View {
     @ObservedObject private var historyManager = WorkoutHistoryManager.shared
+    @State private var displayedDate: Date = Date()
+    @State private var cachedWorkoutDays: Set<Int> = []
+    @State private var cachedStreak: Int = 0
     private let calendar = Calendar.current
 
-    private var streak: Int { historyManager.getConsecutiveDays() }
+    // 只建立一次，避免每次 render 重新 alloc
+    private static let longFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "zh_TW")
+        f.dateFormat = "yyyy年M月"
+        return f
+    }()
+    private static let shortFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "zh_TW")
+        f.dateFormat = "yyyy/M"
+        return f
+    }()
 
-    private var workoutDays: Set<Int> {
-        Set(historyManager.monthlyWorkouts.map {
-            calendar.component(.day, from: $0.completedAt.dateValue())
-        })
+    private var displayedYear: Int { calendar.component(.year, from: displayedDate) }
+    private var displayedMonth: Int { calendar.component(.month, from: displayedDate) }
+
+    private var isCurrentMonth: Bool {
+        calendar.isDate(displayedDate, equalTo: Date(), toGranularity: .month)
     }
 
     private var daysInMonth: Int {
-        calendar.range(of: .day, in: .month, for: Date())?.count ?? 30
+        calendar.range(of: .day, in: .month, for: displayedDate)?.count ?? 30
     }
 
     private var firstWeekdayOffset: Int {
-        let comps = calendar.dateComponents([.year, .month], from: Date())
+        var comps = calendar.dateComponents([.year, .month], from: displayedDate)
+        comps.day = 1
         guard let firstDay = calendar.date(from: comps),
               let weekday = calendar.dateComponents([.weekday], from: firstDay).weekday else { return 0 }
         return (weekday - 1) % 7
     }
 
-    private var currentMonthString: String {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "zh_TW")
-        f.dateFormat = "yyyy年M月"
-        return f.string(from: Date())
-    }
+    private var currentMonthString: String { Self.longFormatter.string(from: displayedDate) }
+    private var shortMonthString: String { Self.shortFormatter.string(from: displayedDate) }
 
     var body: some View {
         ScrollView {
@@ -46,6 +59,21 @@ struct ConsecutiveDaysTab: View {
             .padding(.top, 20)
         }
         .background(Color(.background))
+        .onAppear {
+            loadData()
+            recomputeCache(from: historyManager.monthlyWorkouts)
+        }
+        .onChange(of: historyManager.monthlyWorkouts) { _, workouts in
+            recomputeCache(from: workouts)
+        }
+    }
+
+    // MARK: - 快取計算
+    private func recomputeCache(from workouts: [WorkoutHistory]) {
+        cachedWorkoutDays = Set(workouts.map {
+            calendar.component(.day, from: $0.completedAt.dateValue())
+        })
+        cachedStreak = historyManager.getConsecutiveDays()
     }
 
     // MARK: - 連續天數卡片
@@ -65,7 +93,7 @@ struct ConsecutiveDaysTab: View {
                     .font(.caption)
                     .foregroundColor(.gray)
                 HStack(alignment: .lastTextBaseline, spacing: 4) {
-                    Text("\(streak)")
+                    Text("\(cachedStreak)")
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundColor(Color(.darkBackground))
@@ -73,7 +101,7 @@ struct ConsecutiveDaysTab: View {
                         .font(.subheadline)
                         .foregroundColor(Color(.darkBackground).opacity(0.7))
                 }
-                Text("目前連續紀錄")
+                Text("連續紀錄")
                     .font(.caption)
                     .foregroundColor(.gray)
             }
@@ -92,10 +120,14 @@ struct ConsecutiveDaysTab: View {
     // MARK: - 本月運動日曆卡片
     private var calendarCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("本月運動紀錄")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(Color(.darkBackground))
+            HStack {
+                Text("運動紀錄")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(.darkBackground))
+                Spacer()
+                monthNavigation
+            }
 
             // 星期標題
             HStack(spacing: 0) {
@@ -110,15 +142,15 @@ struct ConsecutiveDaysTab: View {
 
             // 日曆格子
             let cells = makeCells()
-            let today = calendar.component(.day, from: Date())
+            let todayDay = isCurrentMonth ? calendar.component(.day, from: Date()) : -1
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7),
                 spacing: 4
             ) {
                 ForEach(cells.indices, id: \.self) { i in
                     if let day = cells[i] {
-                        let isToday = day == today
-                        let isWorkout = workoutDays.contains(day)
+                        let isToday = day == todayDay
+                        let isWorkout = cachedWorkoutDays.contains(day)
                         ZStack {
                             Circle()
                                 .fill(
@@ -148,11 +180,51 @@ struct ConsecutiveDaysTab: View {
         .padding(.horizontal, 20)
     }
 
+    // MARK: - 月份切換元件
+    private var monthNavigation: some View {
+        HStack(spacing: 10) {
+            Button(action: previousMonth) {
+                Image(systemName: "chevron.left")
+                    .font(.caption)
+                    .foregroundColor(Color(.darkBackground))
+            }
+            Text(shortMonthString)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .frame(minWidth: 50, alignment: .center)
+            Button(action: nextMonth) {
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(isCurrentMonth ? Color.gray.opacity(0.3) : Color(.darkBackground))
+            }
+            .disabled(isCurrentMonth)
+        }
+    }
+
     // MARK: - 輔助方法
     private func makeCells() -> [Int?] {
         var cells: [Int?] = Array(repeating: nil, count: firstWeekdayOffset)
         cells += (1...daysInMonth).map { Optional($0) }
         return cells
+    }
+
+    private func loadData() {
+        historyManager.loadMonthlyWorkouts(year: displayedYear, month: displayedMonth)
+    }
+
+    private func previousMonth() {
+        if let newDate = calendar.date(byAdding: .month, value: -1, to: displayedDate) {
+            displayedDate = newDate
+            loadData()
+        }
+    }
+
+    private func nextMonth() {
+        guard !isCurrentMonth else { return }
+        if let newDate = calendar.date(byAdding: .month, value: 1, to: displayedDate) {
+            displayedDate = newDate
+            loadData()
+        }
     }
 }
 
