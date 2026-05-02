@@ -74,6 +74,13 @@
             ReferencedContainer = "container:01.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "GEMINI_API_KEY"
+            value = "AIzaSyAL3zXJRUq18cMYyO81pP9l1lvYhF7WXMQ"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

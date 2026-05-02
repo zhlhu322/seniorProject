@@ -141,7 +141,7 @@ struct signUpView2: View {
                     
                     HStack{
                         
-                        Text("呱呱！我是超壯肌胸！\n如果你從今天起每個禮拜認真運動，總有一天...你也會變的跟我一樣壯喔！")
+                        Text("呱呱！我是超壯肌胸！\n如果你從今天起每個禮拜認真運動，總有一天你也會變的跟我一樣壯喔！")
                             .font(.callout)
                             .foregroundStyle(Color(.darkBackground))
                             .padding()

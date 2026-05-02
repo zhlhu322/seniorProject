@@ -10,20 +10,35 @@ enum AppTab {
     case home, user, shop
 }
 
+enum ShopRoute: Hashable {
+    case store
+    case style
+}
+
 struct MainTabView: View {
     @State private var selectedTab: AppTab = .home
     @State private var planPath: [PlanRoute] = []
     @State private var userPath: [UserRoute] = []
+    @State private var shopPath: [ShopRoute] = []
     @ObservedObject var authVM = AuthenticationViewModel.shared
     @EnvironmentObject var tabBarManager: TabBarVisibilityManager
 
     var body: some View {
         TabView(selection: $selectedTab) {
             // 商店 tab
-            NavigationStack {
-                MyChickenMeatView()
-                    .toolbar(.visible, for: .tabBar) // 商店 root 固定顯示
+            NavigationStack(path: $shopPath) {
+                MyChickenMeatView(path: $shopPath)
+                    .navigationDestination(for: ShopRoute.self) { route in
+                        switch route {
+                        case .store:
+                            ChickenStoreView()
+                        case .style:
+                            ChickenStyleView()
+                        }
+                    }
             }
+            .toolbar((shopPath.isEmpty && tabBarManager.isVisible) ? .visible : .hidden, for: .tabBar)
+            .animation(.easeInOut(duration: 0.2), value: shopPath.isEmpty)
             .tabItem {
                 Label {
                     Text("我的肌胸肉")

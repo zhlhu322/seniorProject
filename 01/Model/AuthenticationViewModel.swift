@@ -146,17 +146,25 @@ class AuthenticationViewModel: ObservableObject {
                             let chickenRef = db.collection("users").document(user.uid).collection("MyChicken").document()
                             
                             let chickenData: [String: Any] = [
-                                "AminoCoin": 0,
-                                "Endurance": 0,
-                                "Flexibility": 0,
-                                "XP": 0,
-                                "Strength": 0,
-                                "Flavoring": [
-                                    "curry": 0
-                                ],
-                                "Style": [:],
-                                "Stage": "chicken_baby"
-                            ]
+                                                            "AminoCoin": 0,
+                                                            "Endurance": 0,
+                                                            "Flexibility": 0,
+                                                            "XP": 0,
+                                                            "Strength": 0,
+                                                            "Flavoring": [
+                                                                "currently" : "original",
+                                                                "original": 1,
+                                                                "vanilla" : 0,
+                                                                "spicy" : 0
+                                                            ],
+                                                            "Style": [
+                                                                "currently" : "idle",
+                                                                "idle": 1,
+                                                                "banana": 0,
+                                                                "roast": 0
+                                                            ],
+                                                            "Stage": "baby"
+                                                        ]
                             
                             chickenRef.setData(chickenData) { chickenError in
                                 DispatchQueue.main.async {

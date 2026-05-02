@@ -82,19 +82,22 @@ struct HomeView: View {
                     .padding(.leading,25)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                HStack {
+                HStack(spacing: 0) {
                     ForEach(0..<7) { item in
                         let date = getDateForWeekdayOffset(item)
                         let dateString = viewModel.formattedDate(date)
                         let didWorkout = viewModel.workoutDays.contains(dateString)
 
-                        VStack {
-                            Text("\(week[item])").padding(.bottom,15)
+                        VStack(spacing: 15) {
+                            Text(week[item])
+                                .font(.caption)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                             Image(systemName: "flame.fill")
                                 .font(.system(size:28))
                                 .foregroundStyle(didWorkout ? .red : Color(.lightGray))
                         }
-                        .padding(.horizontal,3)
+                        .frame(maxWidth: .infinity)
                     }
                 }
                 .frame(maxWidth:.infinity)
