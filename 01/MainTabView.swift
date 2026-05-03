@@ -91,6 +91,10 @@ struct MainTabView: View {
                             PostureRecordView()
                         case .userWorkoutsHistory:
                             UserWorkoutsHistoryView()
+                        case .weeklyChart:
+                            WeeklyWorkoutChartView()
+                        case .workoutAnalysis(let tab):
+                            WorkoutAnalysisView(initialTab: tab)
                         }
                     }
              }

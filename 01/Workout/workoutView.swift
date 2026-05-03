@@ -75,7 +75,10 @@ struct workoutView: View {
         .background(Color("PrimaryColor"))
         .onAppear {
             print("進入動作頁面")
-            // times = 0 // This line is removed as per the new_code
+            UIApplication.shared.isIdleTimerDisabled = true  // 運動中禁止螢幕自動休眠
+        }
+        .onDisappear {
+            UIApplication.shared.isIdleTimerDisabled = false // 離開後恢復正常休眠
         }
         .onChange(of: bluetoothManager.currentCount) { oldValue, newValue in
             // 🔸 當運動次數改變時觸發（舊值→oldValue，新值→newValue）

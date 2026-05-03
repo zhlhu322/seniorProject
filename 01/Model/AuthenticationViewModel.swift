@@ -33,7 +33,10 @@ class AuthenticationViewModel: ObservableObject {
         // 只有在不是 Preview 的時候，才執行 Firebase 的連線和資料讀取
         if !AuthenticationViewModel.isRunningForPreview {
             self.isLoggedIn = Auth.auth().currentUser != nil
-            if isLoggedIn { loadUserData() }
+            if isLoggedIn {
+                loadUserData()
+                WorkoutHistoryManager.shared.preloadCurrentMonth()
+            }
         }
     }
 
@@ -257,6 +260,7 @@ class AuthenticationViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.isLoggedIn = true
                 self.loadUserData()
+                WorkoutHistoryManager.shared.preloadCurrentMonth()
                 completion(nil, nil)
             }
         }
