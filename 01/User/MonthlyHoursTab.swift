@@ -48,8 +48,10 @@ struct MonthlyHoursTab: View {
             VStack(spacing: 20) {
                 summaryCard
                 chartCard
+                comparisonCard
             }
             .padding(.top, 20)
+            .padding(.bottom, 20)
         }
         .background(Color(.background))
         .onAppear {
@@ -59,6 +61,36 @@ struct MonthlyHoursTab: View {
         .onChange(of: historyManager.monthlyWorkouts) { _, workouts in
             recomputeCache(from: workouts)
         }
+    }
+
+    // MARK: - 與上月比較摘要卡片
+    private var comparisonCard: some View {
+        let curMinutes = cachedTotalMinutes
+        let prevMinutes = Double(historyManager.getLastMonthWorkoutTime()) / 60.0
+        let curCount = historyManager.getMonthlyWorkoutCount()
+        let prevCount = historyManager.getLastMonthWorkoutCount()
+
+        return ComparisonSummaryCard(
+            title: "與上月相比",
+            items: [
+                ComparisonItem(
+                    icon: "timer",
+                    iconColor: Color(.myMint),
+                    label: "運動時數",
+                    currentText: formatMinutes(curMinutes),
+                    changePercent: ComparisonItem.percent(current: curMinutes, previous: prevMinutes),
+                    previousText: prevMinutes > 0 ? formatMinutes(prevMinutes) : nil
+                ),
+                ComparisonItem(
+                    icon: "dumbbell.fill",
+                    iconColor: Color(.myMint),
+                    label: "訓練次數",
+                    currentText: "\(curCount)次",
+                    changePercent: ComparisonItem.percent(current: curCount, previous: prevCount),
+                    previousText: prevCount > 0 ? "\(prevCount)次" : nil
+                )
+            ]
+        )
     }
 
     // MARK: - 快取計算（避免 body 每次 render 都重複運算）

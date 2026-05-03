@@ -65,13 +65,26 @@ struct WeeklyWorkoutChartView: View {
         cachedTotalCount = data.reduce(0) { $0 + $1.count }
     }
 
+    // MARK: - 上週次數（跨月時合併 lastMonthWorkouts）
+    private var lastWeekTotal: Int {
+        guard let lastWeekStart = calendar.date(byAdding: .weekOfYear, value: -1, to: weekStart),
+              let lastWeekEnd = calendar.date(byAdding: .day, value: 7, to: lastWeekStart) else { return 0 }
+        let allWorkouts = historyManager.monthlyWorkouts + historyManager.lastMonthWorkouts
+        return allWorkouts.filter {
+            let d = $0.completedAt.dateValue()
+            return d >= lastWeekStart && d < lastWeekEnd
+        }.count
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 summaryCard
                 chartCard
+                comparisonCard
             }
             .padding(.top, 20)
+            .padding(.bottom, 20)
         }
         .background(Color(.background))
         .navigationBarTitleDisplayMode(.inline)
@@ -86,6 +99,37 @@ struct WeeklyWorkoutChartView: View {
         .onChange(of: weekStart) { _, _ in
             recomputeCache(from: historyManager.monthlyWorkouts)
         }
+    }
+
+    // MARK: - 與上週比較摘要卡片
+    private var comparisonCard: some View {
+        let curTotal = cachedTotalCount
+        let prevTotal = lastWeekTotal
+        // 平均每日（只算有資料的天，避免除以零）
+        let curAvg = curTotal > 0 ? Double(curTotal) / 7.0 : 0.0
+        let prevAvg = prevTotal > 0 ? Double(prevTotal) / 7.0 : 0.0
+
+        return ComparisonSummaryCard(
+            title: "與上週相比",
+            items: [
+                ComparisonItem(
+                    icon: "dumbbell.fill",
+                    iconColor: Color(.myMint),
+                    label: "本週次數",
+                    currentText: "\(curTotal)次",
+                    changePercent: ComparisonItem.percent(current: curTotal, previous: prevTotal),
+                    previousText: prevTotal > 0 ? "\(prevTotal)次" : nil
+                ),
+                ComparisonItem(
+                    icon: "chart.bar.fill",
+                    iconColor: Color(.myMint),
+                    label: "日均次數",
+                    currentText: String(format: "%.1f次", curAvg),
+                    changePercent: ComparisonItem.percent(current: curAvg, previous: prevAvg),
+                    previousText: prevAvg > 0 ? String(format: "%.1f次", prevAvg) : nil
+                )
+            ]
+        )
     }
 
     // MARK: - 本週總覽卡片

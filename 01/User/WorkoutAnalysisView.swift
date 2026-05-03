@@ -60,6 +60,7 @@ struct WorkoutAnalysisView: View {
                 historyManager.loadMonthlyWorkouts(year: year, month: month)
             }
             historyManager.loadRecentWorkouts(limit: 30)
+            historyManager.loadLastMonthWorkouts()
             applyNavBarStyle()
         }
     }

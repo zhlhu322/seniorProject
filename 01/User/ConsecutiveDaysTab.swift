@@ -55,8 +55,10 @@ struct ConsecutiveDaysTab: View {
             VStack(spacing: 20) {
                 streakCard
                 calendarCard
+                comparisonCard
             }
             .padding(.top, 20)
+            .padding(.bottom, 20)
         }
         .background(Color(.background))
         .onAppear {
@@ -66,6 +68,36 @@ struct ConsecutiveDaysTab: View {
         .onChange(of: historyManager.monthlyWorkouts) { _, workouts in
             recomputeCache(from: workouts)
         }
+    }
+
+    // MARK: - 與上月比較摘要卡片
+    private var comparisonCard: some View {
+        let curDays = historyManager.getMonthlyWorkoutDays()
+        let prevDays = historyManager.getLastMonthWorkoutDays()
+        let curStreak = cachedStreak
+        let prevStreak = historyManager.getLastMonthConsecutiveDays()
+
+        return ComparisonSummaryCard(
+            title: "與上月相比",
+            items: [
+                ComparisonItem(
+                    icon: "calendar",
+                    iconColor: .orange,
+                    label: "運動天數",
+                    currentText: "\(curDays)天",
+                    changePercent: ComparisonItem.percent(current: curDays, previous: prevDays),
+                    previousText: prevDays > 0 ? "\(prevDays)天" : nil
+                ),
+                ComparisonItem(
+                    icon: "flame.fill",
+                    iconColor: .orange,
+                    label: "連續天數",
+                    currentText: "\(curStreak)天",
+                    changePercent: ComparisonItem.percent(current: curStreak, previous: prevStreak),
+                    previousText: prevStreak > 0 ? "\(prevStreak)天" : nil
+                )
+            ]
+        )
     }
 
     // MARK: - 快取計算

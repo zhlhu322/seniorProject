@@ -25,6 +25,12 @@ class WorkoutHistoryManager: ObservableObject {
     /// 防止同時打出多個 loadMonthlyWorkouts 請求
     private var isLoadingMonthly = false
 
+    // MARK: - 上個月資料（用於摘要比較）
+    @Published var lastMonthWorkouts: [WorkoutHistory] = []
+    private var cachedLastYear: Int? = nil
+    private var cachedLastMonth: Int? = nil
+    private var isLoadingLastMonthly = false
+
     private init() {}
     
     // MARK: - 儲存運動記錄到 Firestore
@@ -84,6 +90,87 @@ class WorkoutHistoryManager: ObservableObject {
             loadMonthlyWorkouts(year: year, month: month)
         }
         loadRecentWorkouts()
+        loadLastMonthWorkouts()
+    }
+
+    // MARK: - 載入上個月資料（用於摘要比較）
+    func loadLastMonthWorkouts(forceReload: Bool = false) {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+
+        let calendar = Calendar.current
+        guard let lastMonthDate = calendar.date(byAdding: .month, value: -1, to: Date()) else { return }
+        let comps = calendar.dateComponents([.year, .month], from: lastMonthDate)
+        guard let year = comps.year, let month = comps.month else { return }
+
+        if !forceReload && cachedLastYear == year && cachedLastMonth == month && !lastMonthWorkouts.isEmpty {
+            return
+        }
+        guard !isLoadingLastMonthly else { return }
+        isLoadingLastMonthly = true
+
+        var dateComponents = DateComponents()
+        dateComponents.year = year
+        dateComponents.month = month
+        dateComponents.day = 1
+        guard let startDate = calendar.date(from: dateComponents),
+              let endDate = calendar.date(byAdding: DateComponents(month: 1), to: startDate) else {
+            isLoadingLastMonthly = false
+            return
+        }
+
+        db.collection("workoutHistory")
+            .whereField("userId", isEqualTo: userId)
+            .getDocuments { snapshot, error in
+                defer { self.isLoadingLastMonthly = false }
+                guard error == nil, let documents = snapshot?.documents else {
+                    self.lastMonthWorkouts = []
+                    return
+                }
+                let all = documents.compactMap { try? $0.data(as: WorkoutHistory.self) }
+                self.lastMonthWorkouts = all.filter {
+                    let d = $0.completedAt.dateValue()
+                    return d >= startDate && d < endDate
+                }
+                self.cachedLastYear = year
+                self.cachedLastMonth = month
+            }
+    }
+
+    // MARK: - 上月統計（用於摘要比較）
+    func getLastMonthWorkoutTime() -> Int {
+        lastMonthWorkouts.reduce(0) { $0 + $1.totalDuration }
+    }
+
+    func getLastMonthWorkoutCount() -> Int {
+        lastMonthWorkouts.count
+    }
+
+    func getLastMonthWorkoutDays() -> Int {
+        let calendar = Calendar.current
+        return Set(lastMonthWorkouts.map { calendar.startOfDay(for: $0.completedAt.dateValue()) }).count
+    }
+
+    func getLastMonthConsecutiveDays() -> Int {
+        guard !lastMonthWorkouts.isEmpty else { return 0 }
+        let calendar = Calendar.current
+        let sorted = Array(
+            Set(lastMonthWorkouts.map { calendar.startOfDay(for: $0.completedAt.dateValue()) })
+        ).sorted(by: >)
+        var streak = 1
+        var prev = sorted[0]
+        for date in sorted.dropFirst() {
+            if calendar.dateComponents([.day], from: date, to: prev).day == 1 {
+                streak += 1
+                prev = date
+            } else { break }
+        }
+        return streak
+    }
+
+    /// 本月有運動的天數
+    func getMonthlyWorkoutDays() -> Int {
+        let calendar = Calendar.current
+        return Set(monthlyWorkouts.map { calendar.startOfDay(for: $0.completedAt.dateValue()) }).count
     }
 
     // MARK: - 載入最近的運動記錄（用於主頁顯示）

@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>GEMINI_API_KEY</key>
-	<string>$(GEMINI_API_KEY)</string>
 	<key>API_KEY</key>
 	<string>AIzaSyAlnHBKkXcsCFQlaF5ATU7GK-pAeujrA3c</string>
 	<key>GCM_SENDER_ID</key>
