@@ -1,28 +1,28 @@
 //
-//  ChickenStyleView.swift
+//  ChickenFlavorView.swift
 //  01
 //
-//  Created by 許雅涵 on 2025/11/24.
+//  Created by Codex on 2025/02/14.
 //
 
 import SwiftUI
 import Lottie
 
-struct ChickenStyleView: View {
+struct ChickenFlavorView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var chickenManager = MyChickenManager.shared
     private let animationManager = AnimationManager.shared
 
-    @State private var selectedStyle: Style = .idle
+    @State private var selectedFlavor: Style = .idle
     @State private var currentAnimationURL = ""
-    @State private var isSavingStyle = false
+    @State private var isSavingFlavor = false
     @State private var alertMessage = ""
     @State private var showAlert = false
 
-    private let styleOptions: [StyleOption] = [
-        StyleOption(title: "原味", imageName: "xmark", style: .idle, isSystemImage: true),
-        StyleOption(title: "香蕉皮", imageName: "style_banana", style: .banana),
-        StyleOption(title: "烤火雞", imageName: "style_roast", style: .roast)
+    private let flavorOptions: [FlavorOption] = [
+        FlavorOption(title: "原味", imageName: "xmark", flavor: .idle, isSystemImage: true),
+        FlavorOption(title: "香草味", imageName: "style_vanilla", flavor: .vanilla),
+        FlavorOption(title: "辣味", imageName: "style_spicy", flavor: .spicy)
     ]
 
     private var animationSize: CGFloat {
@@ -61,18 +61,18 @@ struct ChickenStyleView: View {
 
                 Spacer()
 
-                stylePickerSection
+                flavorPickerSection
             }
 
             if showAlert {
-                styleAlertOverlayView
+                flavorAlertOverlayView
             }
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
             chickenManager.loadChickenData { _ in
-                let storedStyleRaw = chickenManager.style["currently"] as? String ?? Style.idle.rawValue
-                selectedStyle = Style(rawValue: storedStyleRaw) ?? .idle
+                let storedFlavorRaw = chickenManager.style["currently"] as? String ?? Style.idle.rawValue
+                selectedFlavor = supportedFlavor(from: storedFlavorRaw)
                 updateAnimation()
             }
         }
@@ -97,7 +97,7 @@ struct ChickenStyleView: View {
 
             Spacer()
 
-            Text("造型")
+            Text("調味")
                 .font(.system(size: 30, weight: .bold))
                 .foregroundStyle(Color(.darkBackground))
 
@@ -110,23 +110,23 @@ struct ChickenStyleView: View {
         .padding(.top, 10)
     }
 
-    private var stylePickerSection: some View {
+    private var flavorPickerSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("選擇一個喜歡的造型吧")
+            Text("選擇一個喜歡的口味吧")
                 .font(.system(size: 18, weight: .bold))
                 .foregroundStyle(Color(.darkBackground))
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(styleOptions) { option in
-                        StyleCard(
+                    ForEach(flavorOptions) { option in
+                        FlavorCard(
                             option: option,
-                            isSelected: selectedStyle == option.style,
-                            ownedCount: ownedCount(for: option.style),
-                            isDisabled: !canSelect(option.style)
+                            isSelected: selectedFlavor == option.flavor,
+                            ownedCount: ownedCount(for: option.flavor),
+                            isDisabled: !canSelect(option.flavor)
                         )
                         .onTapGesture {
-                            applyStyle(option.style)
+                            applyFlavor(option.flavor)
                         }
                     }
                 }
@@ -137,12 +137,12 @@ struct ChickenStyleView: View {
         .padding(.bottom, 30)
     }
 
-    private var styleAlertOverlayView: some View {
+    private var flavorAlertOverlayView: some View {
         ZStack {
             Color.black.opacity(0.35)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    dismissStyleAlert()
+                    dismissFlavorAlert()
                 }
 
             VStack(spacing: 18) {
@@ -157,7 +157,7 @@ struct ChickenStyleView: View {
                     .lineSpacing(4)
 
                 Button {
-                    dismissStyleAlert()
+                    dismissFlavorAlert()
                 } label: {
                     Text("確定")
                         .font(.headline)
@@ -183,35 +183,46 @@ struct ChickenStyleView: View {
         .animation(.spring(response: 0.32, dampingFraction: 0.82), value: showAlert)
     }
 
-    private func ownedCount(for style: Style) -> Int? {
-        guard style != .idle else { return nil }
-        return chickenManager.style[style.rawValue] as? Int ?? 0
+    private func supportedFlavor(from rawValue: String) -> Style {
+        switch Style(rawValue: rawValue) {
+        case .spicy:
+            return .spicy
+        case .vanilla:
+            return .vanilla
+        default:
+            return .idle
+        }
     }
 
-    private func canSelect(_ style: Style) -> Bool {
-        guard style != .idle else { return true }
-        return (chickenManager.style[style.rawValue] as? Int ?? 0) > 0
+    private func ownedCount(for flavor: Style) -> Int? {
+        guard flavor != .idle else { return nil }
+        return chickenManager.flavoring[flavor.rawValue] ?? 0
     }
 
-    private func applyStyle(_ style: Style) {
-        guard !isSavingStyle else { return }
+    private func canSelect(_ flavor: Style) -> Bool {
+        guard flavor != .idle else { return true }
+        return (chickenManager.flavoring[flavor.rawValue] ?? 0) > 0
+    }
 
-        guard canSelect(style) else {
-            alertMessage = "尚未擁有這個造型"
+    private func applyFlavor(_ flavor: Style) {
+        guard !isSavingFlavor else { return }
+
+        guard canSelect(flavor) else {
+            alertMessage = "尚未擁有這個調味"
             showAlert = true
             return
         }
 
-        let previousStyle = selectedStyle
-        selectedStyle = style
+        let previousFlavor = selectedFlavor
+        selectedFlavor = flavor
         updateAnimation()
-        isSavingStyle = true
+        isSavingFlavor = true
 
-        chickenManager.updateCurrentStyle(style) { error in
-            isSavingStyle = false
+        chickenManager.updateCurrentFlavor(flavor) { error in
+            isSavingFlavor = false
 
             if let error {
-                selectedStyle = previousStyle
+                selectedFlavor = previousFlavor
                 updateAnimation()
                 alertMessage = error.localizedDescription
                 showAlert = true
@@ -220,65 +231,24 @@ struct ChickenStyleView: View {
     }
 
     private func updateAnimation() {
-        currentAnimationURL = animationManager.getAnimationURL(stage: chickenManager.Stage, xp: chickenManager.xp, style: selectedStyle) ?? ""
+        currentAnimationURL = animationManager.getAnimationURL(stage: chickenManager.Stage, xp: chickenManager.xp, style: selectedFlavor) ?? ""
     }
 
-    private func dismissStyleAlert() {
+    private func dismissFlavorAlert() {
         showAlert = false
     }
 }
 
-struct LottieViewStorage: UIViewRepresentable {
-    let url: URL
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-
-    func makeUIView(context: Context) -> LottieAnimationView {
-        let view = LottieAnimationView()
-        view.contentMode = .scaleAspectFit
-        view.loopMode = .loop
-
-        loadAnimation(into: view, context: context)
-
-        return view
-    }
-
-    func updateUIView(_ uiView: LottieAnimationView, context: Context) {
-        guard context.coordinator.currentURL != url else { return }
-
-        loadAnimation(into: uiView, context: context)
-    }
-
-    private func loadAnimation(into view: LottieAnimationView, context: Context) {
-        context.coordinator.currentURL = url
-
-        LottieAnimation.loadedFrom(url: url, closure: { animation in
-            guard let animation else { return }
-            DispatchQueue.main.async {
-                view.stop()
-                view.animation = animation
-                view.play()
-            }
-        }, animationCache: nil)
-    }
-
-    final class Coordinator {
-        var currentURL: URL?
-    }
-}
-
-private struct StyleOption: Identifiable {
+private struct FlavorOption: Identifiable {
     let id = UUID()
     let title: String
     let imageName: String
-    let style: Style
+    let flavor: Style
     var isSystemImage = false
 }
 
-private struct StyleCard: View {
-    let option: StyleOption
+private struct FlavorCard: View {
+    let option: FlavorOption
     let isSelected: Bool
     let ownedCount: Int?
     let isDisabled: Bool
@@ -291,6 +261,12 @@ private struct StyleCard: View {
                     .foregroundStyle(Color(red: 0.43, green: 0.35, blue: 0.28))
 
                 Spacer()
+
+                if let ownedCount {
+                    Text("x\(ownedCount)")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color(.darkBackground).opacity(0.65))
+                }
             }
 
             ZStack {
@@ -329,6 +305,6 @@ private struct StyleCard: View {
 
 #Preview {
     NavigationStack {
-        ChickenStyleView()
+        ChickenFlavorView()
     }
 }

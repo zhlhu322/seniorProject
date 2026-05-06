@@ -13,6 +13,7 @@ enum AppTab {
 enum ShopRoute: Hashable {
     case store
     case style
+    case flavor
 }
 
 struct MainTabView: View {
@@ -34,6 +35,8 @@ struct MainTabView: View {
                             ChickenStoreView()
                         case .style:
                             ChickenStyleView()
+                        case .flavor:
+                            ChickenFlavorView()
                         }
                     }
             }

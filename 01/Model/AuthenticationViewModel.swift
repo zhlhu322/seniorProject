@@ -165,8 +165,7 @@ class AuthenticationViewModel: ObservableObject {
                                                                 "idle": 1,
                                                                 "banana": 0,
                                                                 "roast": 0
-                                                            ],
-                                                            "Stage": "baby"
+                                                            ]
                                                         ]
                             
                             chickenRef.setData(chickenData) { chickenError in
@@ -231,6 +230,70 @@ class AuthenticationViewModel: ObservableObject {
             }
         }
     }
+
+    func updateInitialChickenSelection(roleID: Int, stage: String, completion: @escaping (String?) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            completion("無法取得使用者 UID")
+            return
+        }
+
+        Auth.auth().currentUser?.getIDTokenForcingRefresh(true) { _, tokenError in
+            if let tokenError = tokenError {
+                print("⚠️ ID token refresh error before updateInitialChickenSelection: \(tokenError.localizedDescription)")
+            }
+
+            let db = Firestore.firestore()
+            let userRef = db.collection("users").document(uid)
+            let chickenRef = userRef.collection("MyChicken")
+
+            userRef.updateData([
+                "roleID": roleID
+            ]) { userError in
+                if let userError = userError {
+                    if let ns = userError as NSError? {
+                        print("❌ updateInitialChickenSelection user NSError: domain=\(ns.domain) code=\(ns.code) userInfo=\(ns.userInfo)")
+                    }
+                    DispatchQueue.main.async {
+                        completion("儲存角色失敗：\(userError.localizedDescription)")
+                    }
+                    return
+                }
+
+                chickenRef.getDocuments { snapshot, chickenFetchError in
+                    if let chickenFetchError = chickenFetchError {
+                        DispatchQueue.main.async {
+                            completion("讀取小雞資料失敗：\(chickenFetchError.localizedDescription)")
+                        }
+                        return
+                    }
+
+                    guard let document = snapshot?.documents.first else {
+                        DispatchQueue.main.async {
+                            completion("找不到小雞資料")
+                        }
+                        return
+                    }
+
+                    chickenRef.document(document.documentID).updateData([
+                        "Stage": stage
+                    ]) { stageError in
+                        DispatchQueue.main.async {
+                            if let stageError = stageError {
+                                if let ns = stageError as NSError? {
+                                    print("❌ updateInitialChickenSelection stage NSError: domain=\(ns.domain) code=\(ns.code) userInfo=\(ns.userInfo)")
+                                }
+                                completion("儲存小雞階段失敗：\(stageError.localizedDescription)")
+                            } else {
+                                MyChickenManager.shared.Stage = stage
+                                print("✅ 初始小雞選擇已儲存，roleID：\(roleID), stage：\(stage)")
+                                completion(nil)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     
     // 登入
     func signIn(email: String, password: String, completion: @escaping (AuthErrorCodeFriendly?, String?) -> Void) {
@@ -280,4 +343,3 @@ class AuthenticationViewModel: ObservableObject {
         }
     }
 }
-

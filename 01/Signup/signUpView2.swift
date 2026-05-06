@@ -10,9 +10,25 @@ import SwiftUI
 struct signUpView2: View {
     @Binding var path: [PlanRoute]
     @EnvironmentObject var tabBarManager: TabBarVisibilityManager
-    
-    func updateUserRole(_ roleID: Int) {
-        AuthenticationViewModel.shared.updateUserRole(roleID: roleID)
+    @State private var isSavingSelection = false
+    @State private var errorMessage: String?
+
+    private func saveInitialChickenSelection(roleID: Int, stage: String) {
+        guard !isSavingSelection else { return }
+        isSavingSelection = true
+        errorMessage = nil
+
+        AuthenticationViewModel.shared.updateInitialChickenSelection(roleID: roleID, stage: stage) { error in
+            isSavingSelection = false
+
+            if let error {
+                errorMessage = error
+                return
+            }
+
+            path.removeAll()
+            tabBarManager.update(isVisible: true)
+        }
     }
 
     
@@ -29,10 +45,7 @@ struct signUpView2: View {
                     
                     HStack{
                         Button(action: {
-                            // 註冊成功後跳轉首頁
-                            updateUserRole(1)
-                            path.removeAll()
-                            tabBarManager.update(isVisible: true)
+                            saveInitialChickenSelection(roleID: 1, stage: "baby")
                         }) {
                             VStack {
                                 Image("chicken_baby")
@@ -55,10 +68,7 @@ struct signUpView2: View {
                         }
                         
                         Button(action: {
-                            // 註冊成功後跳轉首頁
-                            path.removeAll()
-                            tabBarManager.update(isVisible: true)
-
+                            saveInitialChickenSelection(roleID: 2, stage: "healthy")
                         }) {
                             VStack {
                                 Image("chicken_health")
@@ -85,10 +95,7 @@ struct signUpView2: View {
                     HStack{
                         
                         Button(action: {
-                            // 註冊成功後跳轉首頁
-                            updateUserRole(3)
-                            path.removeAll()
-                            tabBarManager.update(isVisible: true)
+                            saveInitialChickenSelection(roleID: 3, stage: "thin")
                         }) {
                             VStack {
                                 Image("chicken_thin")
@@ -111,10 +118,7 @@ struct signUpView2: View {
                         }
                         
                         Button(action: {
-                            // 註冊成功後跳轉首頁
-                            updateUserRole(4)
-                            path.removeAll()
-                            tabBarManager.update(isVisible: true)
+                            saveInitialChickenSelection(roleID: 4, stage: "fat")
                         }) {
                             VStack {
                                 Image("chicken_fat")
@@ -138,6 +142,19 @@ struct signUpView2: View {
                     }
                     
                     Spacer().frame(height:10)
+
+                    if isSavingSelection {
+                        ProgressView("請稍等...")
+                            .foregroundStyle(Color(.darkBackground))
+                    }
+
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 30)
+                    }
                     
                     HStack{
                         

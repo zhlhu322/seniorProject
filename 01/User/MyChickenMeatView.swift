@@ -12,39 +12,47 @@ struct MyChickenMeatView: View {
     @Binding var path: [ShopRoute]
     @State private var isLoading = false
     @State private var loadError: String?
-    @State private var showSeasoningView = false
     private let animationManager = AnimationManager.shared
 
     // 根據 XP 計算階段名稱
     private var stageName: String {
         let xp = chickenManager.xp
+
         if xp < 10 {
-            return "寶寶肌胸"
-        } else if xp < 20 {
+            switch chickenManager.Stage {
+            case "healthy":
+                return "健康肌胸"
+            case "thin":
+                return "瘦瘦肌胸"
+            case "fat":
+                return "胖胖肌胸"
+            case "baby":
+                fallthrough
+            default:
+                return "寶寶肌胸"
+            }
+        } else if xp <= 20 {
             return "健康肌胸"
-        } else if xp < 30 {
-            return "強壯肌胸"
-        } else if xp < 40 {
-            return "完美肌胸"
         } else {
-            return "終極肌胸"
+            return "壯壯肌胸"
         }
     }
 
-    // 根據 XP 計算對應的 idle 動畫 URL（不進行賦值，只是衍生）
+    // 優先根據已儲存的 Stage 載入對應動畫，若沒有再回退到 XP 規則
     private var idleAnimationURLString: String? {
         let currentStyleRaw = chickenManager.style["currently"] as? String ?? Style.idle.rawValue
         let currentStyle = Style(rawValue: currentStyleRaw) ?? .idle
-        return animationManager.getAnimationURL(xp: chickenManager.xp, style: currentStyle)
+        return animationManager.getAnimationURL(stage: chickenManager.Stage, xp: chickenManager.xp, style: currentStyle)
     }
     
     // 是否為 healthy_idle 動畫（用 XP 判斷避免 URL 版本變動）
     private var isHealthyIdle: Bool {
         chickenManager.xp >= 3
     }
-    
-    // 最大 XP（用於進度條）
-    private let maxXP: Int = 10
+
+    private var maxXP: Int {
+        chickenManager.xp <= 10 ? 10 : 50
+    }
     
     var body: some View {
         ZStack {
@@ -235,9 +243,7 @@ struct MyChickenMeatView: View {
                     // MARK: - 底部按鈕
                     HStack(spacing: 20) {
                         // 調味按鈕
-                        Button(action: {
-                            // TODO: 實現調味功能
-                        }) {
+                        NavigationLink(value: ShopRoute.flavor) {
                             Text("調味")
                                 .font(.headline)
                                 .foregroundColor(.white)
@@ -246,6 +252,7 @@ struct MyChickenMeatView: View {
                                 .background(Color("PrimaryColor"))
                                 .cornerRadius(10)
                         }
+                        .buttonStyle(.plain)
                         .overlay{RoundedRectangle(cornerRadius:10)
                             .stroke(lineWidth: 1)}
                         

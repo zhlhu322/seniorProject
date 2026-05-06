@@ -56,7 +56,7 @@ struct LevelUpView: View {
     
     // 計算健身分數（無條件進位）
     private var fitnessScore: Int {
-        let score = (1.2 * Double(totalStrength) + 1.0 * Double(totalEndurance) + 0.8 * Double(totalFlexibility)) / 3.0
+        let score = (1.2 * Double(totalStrength) + 1.0 * Double(totalEndurance) + 0.8 * Double(totalFlexibility))
         return Int(ceil(score))
     }
     
@@ -68,6 +68,10 @@ struct LevelUpView: View {
     // XP 增加量等於健身分數
     private var gainedXP: Int {
         return fitnessScore
+    }
+
+    private func progressBarMaxXP(for xp: Int) -> Int {
+        xp <= 10 ? 10 : 50
     }
     
     var body: some View {
@@ -292,7 +296,7 @@ struct LevelUpView: View {
                     hasLoadedData = true
                     currentXP = chickenManager.xp
                     displayedXP = chickenManager.xp
-                    maxXP = 10  // 可以根據需要調整
+                    maxXP = progressBarMaxXP(for: chickenManager.xp + gainedXP)
                     startXPAnimation()
                     print("✅ 小雞資料已載入")
                     print("當前 XP: \(chickenManager.xp)")
@@ -321,6 +325,7 @@ struct LevelUpView: View {
         let oldFlexibility = chickenManager.flexibility
         let oldAminoCoin = chickenManager.aminoCoin
         let oldCurry = chickenManager.flavoring["curry"] ?? 0
+        let oldStage = chickenManager.Stage
         
         // 計算新的數值
         let newXP = oldXP + gainedXP
@@ -333,11 +338,10 @@ struct LevelUpView: View {
         var updatedFlavoring = chickenManager.flavoring
         updatedFlavoring["curry"] = oldCurry + 1
         
-        let xp2 = {
-            if newXP < 0 { return "baby" }
-            else if newXP < 10 { return "health" }
-            else if newXP < 20 { return "strong" }
-            else { return "ultimate" }
+        let updatedStage = {
+            if newXP > 20 { return "strong" }
+            if newXP > 10 { return "healthy" }
+            return oldStage
         }()
     
         // 更新到 MyChickenManager
@@ -347,7 +351,7 @@ struct LevelUpView: View {
         chickenManager.flexibility = newFlexibility
         chickenManager.aminoCoin = newAminoCoin
         chickenManager.flavoring = updatedFlavoring
-        chickenManager.Stage = xp2
+        chickenManager.Stage = updatedStage
         
         print("📊 更新小雞資料:")
         print("  XP: \(oldXP) -> \(newXP) (+\(gainedXP))")
@@ -356,6 +360,7 @@ struct LevelUpView: View {
         print("  柔軟度: \(oldFlexibility) -> \(newFlexibility) (+\(totalFlexibility))")
         print("  氨基酸: \(oldAminoCoin) -> \(newAminoCoin) (+\(aminoCoin))")
         print("  咖哩飯: \(oldCurry) -> \(updatedFlavoring["curry"] ?? 0) (+1)")
+        print("  階段: \(oldStage) -> \(updatedStage)")
         
         // 更新到 Firebase
         chickenManager.updateChickenData { error in
@@ -365,6 +370,7 @@ struct LevelUpView: View {
                     print("❌ 更新小雞資料到 Firebase 失敗: \(error.localizedDescription)")
                 } else {
                     print("✅ 小雞資料已成功更新到 Firebase")
+                    maxXP = progressBarMaxXP(for: newXP)
                     currentXP = newXP
                     displayedXP = newXP
                 }

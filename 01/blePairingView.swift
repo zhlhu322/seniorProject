@@ -410,6 +410,7 @@ struct blePairingView: View {
     @Binding var path: [PlanRoute]
     let plan: WorkoutPlan
     @EnvironmentObject var bluetoothManager: BluetoothManager
+    @State private var hasAppendedWorkoutRoute = false
     let scanTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
 
@@ -502,7 +503,13 @@ struct blePairingView: View {
             
             .onAppear {
                 print("進入配對頁面")
+                hasAppendedWorkoutRoute = false
                 bluetoothManager.startScanning()
+            }
+            .onChange(of: bluetoothManager.startAppend) { _, shouldAppend in
+                guard shouldAppend, !hasAppendedWorkoutRoute else { return }
+                hasAppendedWorkoutRoute = true
+                path.append(.workout(plan: plan, exerciseIndex: 0, setIndex: 0))
             }
             .onReceive(scanTimer) { _ in
                 if bluetoothManager.connectionStatus == .connected &&
