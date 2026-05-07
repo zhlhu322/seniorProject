@@ -49,6 +49,8 @@ struct exerciseDetailView: View {
         .padding()
         .navigationTitle("動作說明")
         .background(Color(.primary))
+        .toolbarBackground(Color("PrimaryColor"), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 

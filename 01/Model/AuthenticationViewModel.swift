@@ -10,6 +10,7 @@ import Foundation
 import Firebase
 import FirebaseCore
 import FirebaseAuth
+import FirebaseStorage
 
 enum AuthErrorCodeFriendly: Equatable {
     case emailAlreadyInUse
@@ -23,6 +24,7 @@ class AuthenticationViewModel: ObservableObject {
     @Published var isLoggedIn: Bool = false
     @Published var currentUserName: String = ""
     @Published var currentUserEmail: String = ""
+    @Published var avatarImage: UIImage? = nil
     static let shared = AuthenticationViewModel()
     
     static var isRunningForPreview: Bool {
@@ -73,6 +75,13 @@ class AuthenticationViewModel: ObservableObject {
                     self.currentUserName = data["name"] as? String ?? ""
                     self.currentUserEmail = data["email"] as? String ?? ""
                     print("✅ 使用者資料載入成功: \(self.currentUserName)")
+                }
+                if let avatarURL = data["avatarURL"] as? String, let url = URL(string: avatarURL) {
+                    URLSession.shared.dataTask(with: url) { data, _, _ in
+                        if let data = data, let image = UIImage(data: data) {
+                            DispatchQueue.main.async { self.avatarImage = image }
+                        }
+                    }.resume()
                 }
             }
         }
@@ -329,6 +338,43 @@ class AuthenticationViewModel: ObservableObject {
         }
     }
     
+    func uploadAvatar(_ image: UIImage, completion: @escaping (Bool) -> Void) {
+        guard let uid = Auth.auth().currentUser?.uid,
+              let data = image.jpegData(compressionQuality: 0.8) else {
+            completion(false)
+            return
+        }
+        let ref = Storage.storage().reference().child("avatars/\(uid).jpg")
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        ref.putData(data, metadata: metadata) { _, error in
+            if let error = error {
+                print("❌ 頭像上傳失敗：\(error.localizedDescription)")
+                completion(false)
+                return
+            }
+            ref.downloadURL { url, error in
+                guard let url = url else {
+                    print("❌ 取得頭像 URL 失敗：\(error?.localizedDescription ?? "")")
+                    completion(false)
+                    return
+                }
+                let db = Firestore.firestore()
+                db.collection("users").document(uid).updateData(["avatarURL": url.absoluteString]) { error in
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            print("❌ 儲存頭像 URL 失敗：\(error.localizedDescription)")
+                            completion(false)
+                        } else {
+                            print("✅ 頭像已上傳並儲存")
+                            completion(true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     func signOut() {
         do {
             try Auth.auth().signOut()
@@ -336,6 +382,7 @@ class AuthenticationViewModel: ObservableObject {
                 self.isLoggedIn = false
                 self.currentUserName = ""
                 self.currentUserEmail = ""
+                self.avatarImage = nil
             }
             print("✅ 登出成功")
         } catch let signOutError as NSError {

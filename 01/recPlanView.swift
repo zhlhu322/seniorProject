@@ -107,8 +107,8 @@ struct recPlanView: View {
             }
         }
         .navigationTitle("推薦組合")
-        .toolbarBackground(Color(.background), for: .navigationBar)
-        //背景色在螢幕往下滑的時候才會出現，不動就是白色
+        .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .navigationBarBackButtonHidden()
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {

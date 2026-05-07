@@ -78,6 +78,7 @@ struct HomeView: View {
             Color(.background).ignoresSafeArea()
             VStack{
                 Text("本週運動")
+                    .foregroundStyle(Color(.black))
                     .padding(.bottom,10)
                     .padding(.leading,25)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -90,7 +91,7 @@ struct HomeView: View {
 
                         VStack(spacing: 15) {
                             Text(week[item])
-                                .font(.caption)
+                                .font(.callout)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.8)
                             Image(systemName: "flame.fill")
@@ -193,6 +194,9 @@ struct HomeView: View {
                     .foregroundColor(.black)
             }
         }
+        // 用 named asset 而非 Color(.background) semantic color，避免循環 re-render
+        .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
