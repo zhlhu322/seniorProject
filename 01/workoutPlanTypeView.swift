@@ -79,6 +79,8 @@ struct workoutPlanTypeView: View {
         }
         .navigationTitle("選擇運動計劃")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 

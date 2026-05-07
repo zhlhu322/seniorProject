@@ -118,19 +118,18 @@ class WorkoutHistoryManager: ObservableObject {
             return
         }
 
+        // 在 Firestore 端就過濾日期，避免下載全部資料
         db.collection("workoutHistory")
             .whereField("userId", isEqualTo: userId)
+            .whereField("completedAt", isGreaterThanOrEqualTo: Timestamp(date: startDate))
+            .whereField("completedAt", isLessThan: Timestamp(date: endDate))
             .getDocuments { snapshot, error in
                 defer { self.isLoadingLastMonthly = false }
                 guard error == nil, let documents = snapshot?.documents else {
                     self.lastMonthWorkouts = []
                     return
                 }
-                let all = documents.compactMap { try? $0.data(as: WorkoutHistory.self) }
-                self.lastMonthWorkouts = all.filter {
-                    let d = $0.completedAt.dateValue()
-                    return d >= startDate && d < endDate
-                }
+                self.lastMonthWorkouts = documents.compactMap { try? $0.data(as: WorkoutHistory.self) }
                 self.cachedLastYear = year
                 self.cachedLastMonth = month
             }

@@ -108,7 +108,8 @@ struct cusPlanView: View {
         }
         .navigationTitle("自訂組合")
         .navigationBarBackButtonHidden()
-        .toolbarBackground(Color(.background), for: .navigationBar)
+        .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
             let details = loadAllExerciseDetails()
             allDetails = details

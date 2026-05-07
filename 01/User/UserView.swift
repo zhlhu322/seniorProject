@@ -47,7 +47,23 @@ struct UserView: View {
     @ObservedObject var historyManager = WorkoutHistoryManager.shared
     @Binding var selectedTab: AppTab
     @Binding var path: [UserRoute]
-    
+
+    @State private var showImagePicker = false
+    @State private var pickerSourceType: UIImagePickerController.SourceType = .photoLibrary
+    @State private var selectedImage: UIImage? = nil
+    @State private var isUploadingAvatar = false
+
+    func handleImagePickerDismiss() {
+        if let img = selectedImage {
+            authVM.avatarImage = img   // 立即更新畫面
+            isUploadingAvatar = true
+            authVM.uploadAvatar(img) { _ in
+                isUploadingAvatar = false
+            }
+            selectedImage = nil
+        }
+    }
+
     // 格式化運動時間（秒 -> 小時分鐘）
     func formatDuration(_ seconds: Int) -> String {
         let hours = seconds / 3600
@@ -58,17 +74,62 @@ struct UserView: View {
             return "\(minutes)分鐘"
         }
     }
-    
+
     var body: some View {
         VStack(spacing:0) {
                 ZStack(alignment: .bottom) {
                     Color(.darkBackground)
                         .ignoresSafeArea(edges: .top)
                     VStack(alignment: .center){
-                        Image("avatar")
-                            .resizable()
-                            .clipShape(Circle())
-                            .frame(width: 80, height: 80)
+                        Menu {
+                            Button {
+                                pickerSourceType = .photoLibrary
+                                showImagePicker = true
+                            } label: {
+                                Label("從相簿選擇", systemImage: "photo.on.rectangle")
+                            }
+                            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                                Button {
+                                    pickerSourceType = .camera
+                                    showImagePicker = true
+                                } label: {
+                                    Label("拍照", systemImage: "camera")
+                                }
+                            }
+                        } label: {
+                            ZStack(alignment: .bottomTrailing) {
+                                Group {
+                                    if let img = authVM.avatarImage {
+                                        Image(uiImage: img)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .clipShape(Circle())
+                                    } else {
+                                        Image("avatar")
+                                            .resizable()
+                                            .clipShape(Circle())
+                                    }
+                                }
+                                .frame(width: 80, height: 80)
+                                if isUploadingAvatar {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                        .background(Color.black.opacity(0.4).clipShape(Circle()))
+                                        .frame(width: 80, height: 80)
+                                }
+                                if authVM.isLoggedIn {
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white)
+                                        .padding(5)
+                                        .background(Color(.darkBackground))
+                                        .clipShape(Circle())
+                                        .overlay(Circle().stroke(Color(.background), lineWidth: 1.5))
+                                }
+                            }
+                        }
+                        .disabled(!authVM.isLoggedIn)
+
                         Text(authVM.isLoggedIn ? authVM.currentUserName : "未登入")
                             .font(.title3)
                             .foregroundColor(.background)
@@ -158,6 +219,22 @@ struct UserView: View {
                 Spacer()
             }
             .background(Color(.background).ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
+            // 相簿：用 sheet
+            .sheet(isPresented: Binding(
+                get: { showImagePicker && pickerSourceType == .photoLibrary },
+                set: { if !$0 { showImagePicker = false } }
+            ), onDismiss: handleImagePickerDismiss) {
+                ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
+            }
+            // 相機：必須用 fullScreenCover，否則 iOS 會 crash
+            .fullScreenCover(isPresented: Binding(
+                get: { showImagePicker && pickerSourceType == .camera },
+                set: { if !$0 { showImagePicker = false } }
+            ), onDismiss: handleImagePickerDismiss) {
+                ImagePicker(image: $selectedImage, sourceType: .camera)
+                    .ignoresSafeArea()
+            }
     }
 }
 
@@ -170,7 +247,7 @@ struct UserView: View {
 }
 
 #Preview("未登入狀態") {
-    UserView(selectedTab: .constant(.user), path: .constant([]))
+    UserView(selectedTab:.constant(.user), path: .constant([]))
         .onAppear {
             let vm = AuthenticationViewModel.shared
             vm.isLoggedIn = false

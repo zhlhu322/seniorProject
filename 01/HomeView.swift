@@ -77,7 +77,9 @@ struct HomeView: View {
         ZStack{
             Color(.background).ignoresSafeArea()
             VStack{
+                Spacer().frame(height: 8)
                 Text("本週運動")
+                    .foregroundStyle(Color(.black))
                     .padding(.bottom,10)
                     .padding(.leading,25)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -90,7 +92,7 @@ struct HomeView: View {
 
                         VStack(spacing: 15) {
                             Text(week[item])
-                                .font(.caption)
+                                .font(.callout)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.8)
                             Image(systemName: "flame.fill")
@@ -193,6 +195,8 @@ struct HomeView: View {
                     .foregroundColor(.black)
             }
         }
+        // 透明 nav bar：背景色與頁面相同，視覺無差異，且不會產生 bottom border
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 }
 
