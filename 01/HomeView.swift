@@ -77,6 +77,7 @@ struct HomeView: View {
         ZStack{
             Color(.background).ignoresSafeArea()
             VStack{
+                Spacer().frame(height: 8)
                 Text("本週運動")
                     .foregroundStyle(Color(.black))
                     .padding(.bottom,10)
@@ -194,9 +195,8 @@ struct HomeView: View {
                     .foregroundColor(.black)
             }
         }
-        // 用 named asset 而非 Color(.background) semantic color，避免循環 re-render
-        .toolbarBackground(Color("BackgroundColor"), for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
+        // 透明 nav bar：背景色與頁面相同，視覺無差異，且不會產生 bottom border
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 }
 

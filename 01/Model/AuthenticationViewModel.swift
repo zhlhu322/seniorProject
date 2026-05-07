@@ -47,44 +47,62 @@ class AuthenticationViewModel: ObservableObject {
             print("⚠️ 無法取得使用者 UID")
             return
         }
-        // 刷新 ID token 確保權限最新
-        Auth.auth().currentUser?.getIDTokenForcingRefresh(true) { idToken, tokenError in
-            if let tokenError = tokenError {
-                print("⚠️ ID token refresh 失敗: \(tokenError.localizedDescription)")
-            } else {
-                print("✅ ID token 已刷新")
+
+        // 先從本地快取載入頭像，讓 UI 立即顯示
+        if let cached = loadCachedAvatar(uid: uid) {
+            DispatchQueue.main.async { self.avatarImage = cached }
+        }
+
+        // 直接讀 Firestore，Firebase SDK 自動管理 token，不需要手動 force refresh
+        let db = Firestore.firestore()
+        db.collection("users").document(uid).getDocument { snapshot, error in
+            if let error = error {
+                let nsError = error as NSError
+                print("❌ 載入使用者資料失敗，錯誤碼: \(nsError.code)，\(error.localizedDescription)")
+                return
             }
-            
-            let db = Firestore.firestore()
-            db.collection("users").document(uid).getDocument { snapshot, error in
-                if let error = error {
-                    let nsError = error as NSError
-                    print("❌ 載入使用者資料失敗")
-                    print("   錯誤碼: \(nsError.code)")
-                    print("   錯誤訊息: \(error.localizedDescription)")
-                    print("   使用者 UID: \(uid)")
-                    return
-                }
-                
-                guard let data = snapshot?.data() else {
-                    print("⚠️ 文件存在但無資料，UID: \(uid)")
-                    return
-                }
-                
-                DispatchQueue.main.async {
-                    self.currentUserName = data["name"] as? String ?? ""
-                    self.currentUserEmail = data["email"] as? String ?? ""
-                    print("✅ 使用者資料載入成功: \(self.currentUserName)")
-                }
-                if let avatarURL = data["avatarURL"] as? String, let url = URL(string: avatarURL) {
+            guard let data = snapshot?.data() else {
+                print("⚠️ 文件存在但無資料，UID: \(uid)")
+                return
+            }
+            DispatchQueue.main.async {
+                self.currentUserName = data["name"] as? String ?? ""
+                self.currentUserEmail = data["email"] as? String ?? ""
+                print("✅ 使用者資料載入成功: \(self.currentUserName)")
+            }
+            // 頭像：只在 URL 有變動時才重新下載
+            if let avatarURL = data["avatarURL"] as? String, let url = URL(string: avatarURL) {
+                let cachedKey = "avatarURL_\(uid)"
+                let lastURL = UserDefaults.standard.string(forKey: cachedKey)
+                if lastURL != avatarURL {
+                    // URL 有變動才下載
                     URLSession.shared.dataTask(with: url) { data, _, _ in
                         if let data = data, let image = UIImage(data: data) {
+                            self.saveAvatarToCache(uid: uid, data: data)
+                            UserDefaults.standard.set(avatarURL, forKey: cachedKey)
                             DispatchQueue.main.async { self.avatarImage = image }
                         }
                     }.resume()
                 }
             }
         }
+    }
+
+    // MARK: - 頭像本地快取
+    private func avatarCacheURL(uid: String) -> URL {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("avatar_\(uid).jpg")
+    }
+
+    private func loadCachedAvatar(uid: String) -> UIImage? {
+        let url = avatarCacheURL(uid: uid)
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return UIImage(data: data)
+    }
+
+    private func saveAvatarToCache(uid: String, data: Data) {
+        let url = avatarCacheURL(uid: uid)
+        try? data.write(to: url, options: .atomic)
     }
 
     //建立使用者,改成回傳 (friendlyCode, message)
@@ -366,6 +384,9 @@ class AuthenticationViewModel: ObservableObject {
                             print("❌ 儲存頭像 URL 失敗：\(error.localizedDescription)")
                             completion(false)
                         } else {
+                            // 上傳成功後同步更新本地快取和 URL 記錄
+                            self.saveAvatarToCache(uid: uid, data: data)
+                            UserDefaults.standard.set(url.absoluteString, forKey: "avatarURL_\(uid)")
                             print("✅ 頭像已上傳並儲存")
                             completion(true)
                         }
@@ -376,6 +397,9 @@ class AuthenticationViewModel: ObservableObject {
     }
 
     func signOut() {
+        if let uid = Auth.auth().currentUser?.uid {
+            UserDefaults.standard.removeObject(forKey: "avatarURL_\(uid)")
+        }
         do {
             try Auth.auth().signOut()
             DispatchQueue.main.async {
