@@ -356,6 +356,7 @@ class GeminiAIService {
         }
         
         print("✅ [GeminiAI] JSON 解析成功")
+
         
         guard let candidates = json["candidates"] as? [[String: Any]],
               let firstCandidate = candidates.first,

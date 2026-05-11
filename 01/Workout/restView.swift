@@ -14,6 +14,8 @@ struct restView: View {
     let setIndex: Int
     
     @State private var timeRemaining: Int = 10 // 你可以根據 plan.exercises[exerciseIndex].rest_seconds 設定
+    @State private var timer: Timer?
+    @State private var didNavigate = false
     
     var currentExercise: PlanDetails {
         plan.details[exerciseIndex]
@@ -61,14 +63,19 @@ struct restView: View {
                 .font(.system(size: 28))
                 .padding(.bottom,80)
                 .onAppear {
+                    timer?.invalidate()
+                    didNavigate = false
+                    timeRemaining = currentExercise.rest_seconds
                     // 固定倒數從 9 到 0
-                    Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+                    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
                         if timeRemaining > 0 {
                             timeRemaining -= 1
                         } else {
+                            guard !didNavigate else { return }
+                            didNavigate = true
                             timer.invalidate()
                             // 倒數結束後自動回 workoutView
-                            if let idValue = Int(currentExercise.id), idValue >= 6 {
+                            if currentExercise.isTimedExercise {
                                 path.append(.workoutTiming(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
                             }
                             else{
@@ -87,6 +94,9 @@ struct restView: View {
                      path.append(.workout(plan: plan, exerciseIndex: exerciseIndex, setIndex: setIndex))
                      }
                      }*/
+                }
+                .onDisappear {
+                    timer?.invalidate()
                 }
             
         }

@@ -18,6 +18,7 @@ struct ChickenStyleView: View {
     @State private var isSavingStyle = false
     @State private var alertMessage = ""
     @State private var showAlert = false
+    @State private var isAnimationLoading = true
 
     private let styleOptions: [StyleOption] = [
         StyleOption(title: "原味", imageName: "xmark", style: .idle, isSystemImage: true),
@@ -40,21 +41,33 @@ struct ChickenStyleView: View {
                 Spacer()
 
                 if let url = URL(string: currentAnimationURL), !currentAnimationURL.isEmpty {
-                    LottieViewStorage(url: url)
+                    ZStack {
+                        if isAnimationLoading {
+                            ProgressView()
+                                .controlSize(.large)
+                                .scaleEffect(1.4)
+                        }
+
+                        LottieViewStorage(
+                            url: url,
+                            onLoadingStateChange: { isLoading in
+                                isAnimationLoading = isLoading
+                            }
+                        )
                         .id(currentAnimationURL)
                         .allowsHitTesting(false)
-                        .frame(width: animationSize, height: animationSize)
-                        .frame(maxWidth: .infinity)
-                        .offset(y: -20)
-                        .padding(.bottom, 30)
+                        .opacity(isAnimationLoading ? 0 : 1)
+                    }
+                    .frame(width: animationSize, height: animationSize)
+                    .frame(maxWidth: .infinity)
+                    .offset(y: -20)
+                    .padding(.bottom, 30)
                 } else {
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color.white.opacity(0.45))
-                        .frame(width: animationSize, height: animationSize)
-                        .overlay {
-                            ProgressView()
-                        }
+                    ProgressView()
+                        .controlSize(.large)
+                        .scaleEffect(1.4)
                         .frame(maxWidth: .infinity)
+                        .frame(width: animationSize, height: animationSize)
                         .offset(y: -20)
                         .padding(.bottom, 30)
                 }
@@ -220,6 +233,7 @@ struct ChickenStyleView: View {
     }
 
     private func updateAnimation() {
+        isAnimationLoading = true
         currentAnimationURL = animationManager.getAnimationURL(stage: chickenManager.Stage, xp: chickenManager.xp, style: selectedStyle) ?? ""
     }
 
@@ -230,6 +244,7 @@ struct ChickenStyleView: View {
 
 struct LottieViewStorage: UIViewRepresentable {
     let url: URL
+    var onLoadingStateChange: (Bool) -> Void = { _ in }
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -253,13 +268,18 @@ struct LottieViewStorage: UIViewRepresentable {
 
     private func loadAnimation(into view: LottieAnimationView, context: Context) {
         context.coordinator.currentURL = url
+        onLoadingStateChange(true)
 
         LottieAnimation.loadedFrom(url: url, closure: { animation in
-            guard let animation else { return }
             DispatchQueue.main.async {
+                guard let animation else {
+                    onLoadingStateChange(false)
+                    return
+                }
                 view.stop()
                 view.animation = animation
                 view.play()
+                onLoadingStateChange(false)
             }
         }, animationCache: nil)
     }

@@ -18,6 +18,7 @@ struct ChickenFlavorView: View {
     @State private var isSavingFlavor = false
     @State private var alertMessage = ""
     @State private var showAlert = false
+    @State private var isAnimationLoading = true
 
     private let flavorOptions: [FlavorOption] = [
         FlavorOption(title: "原味", imageName: "xmark", flavor: .idle, isSystemImage: true),
@@ -40,21 +41,33 @@ struct ChickenFlavorView: View {
                 Spacer()
 
                 if let url = URL(string: currentAnimationURL), !currentAnimationURL.isEmpty {
-                    LottieViewStorage(url: url)
+                    ZStack {
+                        if isAnimationLoading {
+                            ProgressView()
+                                .controlSize(.large)
+                                .scaleEffect(1.4)
+                        }
+
+                        LottieViewStorage(
+                            url: url,
+                            onLoadingStateChange: { isLoading in
+                                isAnimationLoading = isLoading
+                            }
+                        )
                         .id(currentAnimationURL)
                         .allowsHitTesting(false)
-                        .frame(width: animationSize, height: animationSize)
-                        .frame(maxWidth: .infinity)
-                        .offset(y: -20)
-                        .padding(.bottom, 30)
+                        .opacity(isAnimationLoading ? 0 : 1)
+                    }
+                    .frame(width: animationSize, height: animationSize)
+                    .frame(maxWidth: .infinity)
+                    .offset(y: -20)
+                    .padding(.bottom, 30)
                 } else {
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color.white.opacity(0.45))
-                        .frame(width: animationSize, height: animationSize)
-                        .overlay {
-                            ProgressView()
-                        }
+                    ProgressView()
+                        .controlSize(.large)
+                        .scaleEffect(1.4)
                         .frame(maxWidth: .infinity)
+                        .frame(width: animationSize, height: animationSize)
                         .offset(y: -20)
                         .padding(.bottom, 30)
                 }
@@ -231,6 +244,7 @@ struct ChickenFlavorView: View {
     }
 
     private func updateAnimation() {
+        isAnimationLoading = true
         currentAnimationURL = animationManager.getAnimationURL(stage: chickenManager.Stage, xp: chickenManager.xp, style: selectedFlavor) ?? ""
     }
 

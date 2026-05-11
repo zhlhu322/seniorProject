@@ -393,7 +393,8 @@ final class AnimationManager {
         "baby_spicy":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fbaby_spicy.json?alt=media&token=642ee7fe-e5e5-44c2-9bfb-dd1f0180c74f",
         "baby_vanilla": "",
         "healthy_idle": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_idle.json?alt=media&token=ca12cdff-f480-46f4-b333-7916b2882aeb",
-        "healthy_banana":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_banana.json?alt=media&token=b116b84a-63c4-4507-be05-2aeabf3d8b53",
+        "healthy_banana":
+            "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_banana.json?alt=media&token=b116b84a-63c4-4507-be05-2aeabf3d8b53",
         "healthy_roast": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_roast.json?alt=media&token=833f50a8-33aa-4721-8a39-e6b78b831fd0",
         "healthy_spicy": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_spicy.json?alt=media&token=c2eca3e9-17b9-45b4-a469-0ee4e1e35611",
         "healthy_vanilla":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_vanilla.json?alt=media&token=10bbd87c-7423-4015-9628-796b8ee98a34",
@@ -402,7 +403,13 @@ final class AnimationManager {
         "fat_banana": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Ffat_idle.json?alt=media&token=ea055804-078e-4572-ae89-e321751317bb",
         "thin_banana": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fthin_idle.json?alt=media&token=0bf55cb6-ef3f-4e02-ba0e-f51cc0f96fcc",
         "fat_roast": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Ffat_idle.json?alt=media&token=ea055804-078e-4572-ae89-e321751317bb",
-        "thin_roast": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fthin_idle.json?alt=media&token=0bf55cb6-ef3f-4e02-ba0e-f51cc0f96fcc"
+        "thin_roast": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fthin_idle.json?alt=media&token=0bf55cb6-ef3f-4e02-ba0e-f51cc0f96fcc",
+        "strong_idle":
+            "",
+        "strong_banana":
+            "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_banana.json?alt=media&token=b116b84a-63c4-4507-be05-2aeabf3d8b53",
+        "strong_roast":
+            "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fhealthy_roast.json?alt=media&token=833f50a8-33aa-4721-8a39-e6b78b831fd0"
     ]
 
     private func resolvedStage(from stage: String, xp: Int) -> String {

@@ -13,9 +13,15 @@ struct workoutView: View {
     let exerciseIndex: Int
     let setIndex: Int
     @EnvironmentObject var bluetoothManager: BluetoothManager
+    private let exerciseAnimationSize: CGFloat = 180
+    @State private var hasCompletedExercise = false
     
     var currentExercise: PlanDetails {
         plan.details[exerciseIndex]
+    }
+
+    private var lottieURL: URL? {
+        URL(string: currentExercise.lottie_url)
     }
     
     var body: some View {
@@ -44,23 +50,32 @@ struct workoutView: View {
                 .frame(height:UIScreen.main.bounds.height*0.15)
             
             VStack {
-                HStack{
+                // 次數文字靠左
+                HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("目前")
                         Text("次數")
                     }
                     .foregroundColor(.white)
                     .font(.system(size: 35))
+                    
                     Text("\(bluetoothManager.currentCount)/\(currentExercise.targetCount ?? 1)")
-                        .foregroundColor(Color(.white))
-                        .font(.system(size: 80))
+                        .foregroundColor(.white)
+                        .font(.system(size: 80, weight: .bold))
                 }
-                LottieView {
-                    await LottieAnimation.loadedFrom(url: URL(string: currentExercise.lottie_url)!)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 30)
+                
+                // 動畫獨立一層，不與文字重疊
+                if let lottieURL {
+                    ExerciseLottieView(url: lottieURL)
+                        .frame(width: 220, height: 220)
+                } else {
+                    Image(currentExercise.image_name)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 220, height: 220)
                 }
-                .playing(loopMode:.loop)
-                .resizable()
-                .frame(width:300,height:300)
                 
                 Text("\(currentExercise.name)")
                     .font(.title)
@@ -75,32 +90,25 @@ struct workoutView: View {
         .background(Color("PrimaryColor"))
         .onAppear {
             print("進入動作頁面")
+            hasCompletedExercise = false
+            bluetoothManager.currentCount = 0
             UIApplication.shared.isIdleTimerDisabled = true  // 運動中禁止螢幕自動休眠
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false // 離開後恢復正常休眠
         }
         .onChange(of: bluetoothManager.currentCount) { oldValue, newValue in
+            guard !hasCompletedExercise else { return }
+
             // 🔸 當運動次數改變時觸發（舊值→oldValue，新值→newValue）
             if newValue >= (currentExercise.targetCount ?? 10) {
+                hasCompletedExercise = true
+
                 if exerciseIndex + 1 < plan.details.count {
                     // ▶️ 當前動作做完，進入下一個動作
-                    // 將 id（字串）轉成 Int
-                    if let idValue = Int(plan.details[exerciseIndex + 1].id) {
-                        // 乘以 10
-                        var multiplied = idValue * 10
-                        if(multiplied == 70){ //10sec*3
-                            multiplied = 60
-                        }
-                        else if(multiplied == 90){ //30sec
-                            multiplied = 70
-                        }
-                        // 傳送給 micro:bit
-                        bluetoothManager.sendActionType(String(multiplied))
-                        print("📤 傳送乘以10後的ID: \(multiplied)")
-                    } else {
-                        print("⚠️ 錯誤：無法將 id 轉成整數，內容為 \(plan.details[exerciseIndex].id)")
-                    }
+                    let nextExerciseID = plan.details[exerciseIndex + 1].id
+                    bluetoothManager.sendActionType(nextExerciseID)
+                    print("📤 傳送下一個動作ID: \(nextExerciseID)")
                     // 切換到下一個動作
                     path.append(.rest(plan: plan, exerciseIndex: exerciseIndex + 1, setIndex: 0))
                 }
@@ -112,6 +120,49 @@ struct workoutView: View {
             }
         }
         
+    }
+}
+
+struct ExerciseLottieView: UIViewRepresentable {
+    let url: URL
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> LottieAnimationView {
+        let view = LottieAnimationView()
+        view.contentMode = .scaleAspectFit
+        view.loopMode = .loop
+        view.clipsToBounds = false
+        loadAnimation(into: view, context: context)
+        return view
+    }
+
+    func updateUIView(_ uiView: LottieAnimationView, context: Context) {
+        guard context.coordinator.currentURL != url else { return }
+        loadAnimation(into: uiView, context: context)
+    }
+
+    private func loadAnimation(into view: LottieAnimationView, context: Context) {
+        context.coordinator.currentURL = url
+
+        LottieAnimation.loadedFrom(url: url, closure: { animation in
+            DispatchQueue.main.async {
+                guard let animation else {
+                    print("Lottie 動畫載入失敗: \(url.absoluteString)")
+                    return
+                }
+
+                view.stop()
+                view.animation = animation
+                view.play()
+            }
+        }, animationCache: nil)
+    }
+
+    final class Coordinator {
+        var currentURL: URL?
     }
 }
 
