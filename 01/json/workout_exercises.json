@@ -4,7 +4,7 @@
             "id": "1",
             "name": "手臂彎舉",
             "image_name": "biceps",
-            "lottie_url":"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json",
+            "lottie_url":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FBiceps.json?alt=media&token=4a7c01b4-c2cd-453e-8f89-0d0965a42e21",
             "target_muscle": "二頭肌",
             "equipment": "彈力帶/水瓶",
             "type": "動態 計次",
@@ -22,7 +22,7 @@
             "id": "2",
             "name": "肩推",
             "image_name": "shoulder_press",
-            "lottie_url":"https://cdn.lottielab.com/l/7C2E4GWRTSPVc0.json",
+            "lottie_url":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FShoulder_press.json?alt=media&token=0e5dd5f2-1c92-4682-ab9f-149a2dbf8949",
             "target_muscle": "肩膀",
             "equipment": "彈力帶/水瓶",
             "type": "動態 計次",
@@ -39,7 +39,7 @@
             "id": "3",
             "name": "手臂伸展",
             "image_name": "elbow_extension",
-            "lottie_url":"https://cdn.lottielab.com/l/9eUKBNaPSH5ExU.json",
+            "lottie_url":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FElbow_extension.json?alt=media&token=e8262874-cb7f-4402-9566-e0a6ff653169",
             "target_muscle": "三頭肌",
             "equipment": "彈力帶/水瓶",
             "type": "動態 計次",
@@ -56,7 +56,7 @@
             "id": "4",
             "name": "胸推",
             "image_name": "chest_press",
-            "lottie_url":"https://cdn.lottielab.com/l/4uG7noJFUCEwwd.json",
+            "lottie_url":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FChest_press.json?alt=media&token=3d2d5964-033d-4669-a6b6-f4f66f5c0300",
             "target_muscle": "胸肌",
             "equipment": "彈力帶/水瓶",
             "type": "動態 計次",
@@ -73,7 +73,7 @@
             "id": "5",
             "name": "坐姿划船",
             "image_name": "seated_row",
-            "lottie_url":"https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json",
+            "lottie_url":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FChest_press.json?alt=media&token=3d2d5964-033d-4669-a6b6-f4f66f5c0300",
             "target_muscle": "背肌",
             "equipment": "彈力帶",
             "type": "動態 計次",
@@ -88,26 +88,9 @@
         },
         {
             "id": "6",
-            "name": "超人",
-            "image_name": "superman",
-            "lottie_url":"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json",
-            "target_muscle": "上背核心（豎脊肌群、臀大肌）",
-            "equipment": "X",
-            "type": "靜態 計時",
-            "band_position": "X",
-            "steps": [
-                "面朝下趴，雙臂雙腿伸直。",
-                "同時抬起手臂與腿部，保持幾秒後放下。"
-            ],
-            "strength":1,
-            "endurance":2,
-            "flexibility":1
-        },
-        {
-            "id": "7",
-            "name": "太空椅深蹲",
+            "name": "深蹲",
             "image_name": "wall_squat",
-            "lottie_url":"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json",
+            "lottie_url":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FSquat.json?alt=media&token=a627942c-b14f-4031-b61e-0b0def721349",
             "target_muscle": "臀腿（股四頭肌、臀大肌）",
             "equipment": "X",
             "type": "靜態 計時",
@@ -121,56 +104,22 @@
             "flexibility":0
         },
         {
-            "id": "8",
-            "name": "側躺抬腿",
-            "image_name": "side_leg_raises",
-            "lottie_url":"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json",
-            "target_muscle": "臀腿 (側臀)",
+            "id": "7",
+            "name": "弓箭步",
+            "image_name": "lunge",
+            "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FLunge.json?alt=media&token=ac2da4ff-c78e-4219-b4bf-73f35418a8fd",
+            "target_muscle": "臀腿（股四頭肌、臀大肌、腿後肌）",
             "equipment": "X",
-            "type": "動態 計次",
-            "band_position": "腳踝",
-            "steps": [
-                "側躺，頭部靠手支撐，雙腿伸直。",
-                "抬起上側腿至最高，放下還原。"
-            ],
-            "strength":1,
-            "endurance":2,
-            "flexibility":1
-        },
-        {
-            "id": "9",
-            "name": "棒式",
-            "image_name": "plank",
-            "lottie_url":"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json",
-            "target_muscle": "腹肌",
-            "equipment": "X",
-            "type": "靜態 計時",
+            "type": "動態 計時",
             "band_position": "X",
             "steps": [
-                "面朝下，用前臂和腳尖撐起身體。",
-                "保持身體為一條直線，收緊核心。"
+                "單腳向前跨出一步，背部保持挺直。",
+                "身體下降至雙膝約 90° 後，再推回起始位置。"
             ],
-            "strength":1,
-            "endurance":3,
-            "flexibility":0
-        },
-        {
-            "id": "10",
-            "name": "側棒式",
-            "image_name": "side_plank",
-            "lottie_url":"https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json",
-            "target_muscle": "腹肌",
-            "equipment": "X",
-            "type": "靜態 計時",
-            "band_position": "X",
-            "steps": [
-                "側臥，用前臂與同側腳撐起身體。",
-                "保持身體一直線，核心用力。",
-                "維持這個姿勢，感受側腹肌肉的收縮。"
-            ],
-            "strength":1,
-            "endurance":3,
-            "flexibility":0
+            "strength": 3,
+            "endurance": 2,
+            "flexibility": 1
         }
+        
     ]
 } 

@@ -3,47 +3,166 @@
         {
             "name": "test訓練",
             "details": [
-                { "id": "1",
-                    "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 5 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "biceps"
+                {
+                    "id": "1",
+                    "name": "手臂彎舉",
+                    "sets": 1,
+                    "targetCount": 5,
+                    "rest_seconds": 5,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FBiceps.json?alt=media&token=4a7c01b4-c2cd-453e-8f89-0d0965a42e21",
+                    "image_name": "biceps"
                 },
-                { "id": "2", "name": "肩推","sets": 2,"targetCount":5, "rest_seconds": 5 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "shoulder_press",},
-                { "id": "3", "name": "手臂伸展","sets": 1,"targetCount":5, "rest_seconds": 3 ,"lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "shoulder_press",},
-                { "id": "5", "name": "划船","sets": 1,"targetCount":5, "rest_seconds": 7 , "lottie_url": "https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json", "image_name": "shoulder_press",}
+                {
+                    "id": "2",
+                    "name": "肩推",
+                    "sets": 2,
+                    "targetCount": 5,
+                    "rest_seconds": 5,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FShoulder_press.json?alt=media",
+                    "image_name": "shoulder_press"
+                },
+                {
+                    "id": "3",
+                    "name": "手臂伸展",
+                    "sets": 1,
+                    "targetCount": 5,
+                    "rest_seconds": 3,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FElbow_extension.json?alt=media&token=e8262874-cb7f-4402-9566-e0a6ff653169",
+                    "image_name": "elbow_extension"
+                },
+                {
+                    "id": "5",
+                    "name": "划船",
+                    "sets": 1,
+                    "targetCount": 5,
+                    "rest_seconds": 7,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FSeated_row.json?alt=media&token=fa64490b-e363-4e71-99c4-900bc289520d",
+                    "image_name": "seated_row"
+                }
             ]
         },
         {
             "name": "上肢訓練",
             "details": [
-                { "id": "1", "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 10 ,"lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "biceps"},
-                { "id": "3", "name": "手臂伸展","sets": 2,"targetCount":3, "rest_seconds": 10, "lottie_url": "https://cdn.lottielab.com/l/9eUKBNaPSH5ExU.json", "image_name": "elbow_extension"},
-                { "id": "5", "name": "划船","sets": 1,"targetCount":3, "rest_seconds": 7 , "lottie_url": "https://cdn.lottielab.com/l/3rDgNr3bTeywhb.json" , "image_name": "seated_row"}
+                {
+                    "id": "1",
+                    "name": "手臂彎舉",
+                    "sets": 1,
+                    "targetCount": 5,
+                    "rest_seconds": 10,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FBiceps.json?alt=media&token=4a7c01b4-c2cd-453e-8f89-0d0965a42e21",
+                    "image_name": "biceps"
+                },
+                {
+                    "id": "3",
+                    "name": "手臂伸展",
+                    "sets": 2,
+                    "targetCount": 3,
+                    "rest_seconds": 10,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FElbow_extension.json?alt=media&token=e8262874-cb7f-4402-9566-e0a6ff653169",
+                    "image_name": "elbow_extension"
+                },
+                {
+                    "id": "5",
+                    "name": "划船",
+                    "sets": 1,
+                    "targetCount": 3,
+                    "rest_seconds": 7,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FSeated_row.json?alt=media&token=fa64490b-e363-4e71-99c4-900bc289520d",
+                    "image_name": "seated_row"
+                }
             ]
         },
         {
             "name": "下肢訓練",
             "details": [
-                { "id": "7","name": "太空椅深蹲", "sets": 1,"targetTime":60, "rest_seconds": 15 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
-                { "id": "8", "name": "側躺抬腿","sets": 1,"targetCount":15, "rest_seconds": 15 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"}
+                {
+                    "id": "7",
+                    "name": "太空椅深蹲",
+                    "sets": 1,
+                    "targetTime": 60,
+                    "rest_seconds": 15,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FWall_squat.json?alt=media",
+                    "image_name": "wall_squat"
+                },
+                {
+                    "id": "8",
+                    "name": "側躺抬腿",
+                    "sets": 1,
+                    "targetCount": 15,
+                    "rest_seconds": 15,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FSide_lying_leg_raise.json?alt=media",
+                    "image_name": "side_lying_leg_raise"
+                }
             ]
         },
         {
             "name": "核心訓練",
             "details": [
-                { "id": "6", "name": "超人","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
-                { "id": "9", "name": "棒式","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"},
-                { "id": "10", "name": "側棒式","sets": 3, "rest_seconds": 60 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "seated_row"}
+                {
+                    "id": "6",
+                    "name": "超人",
+                    "sets": 3,
+                    "rest_seconds": 60,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FSuperman.json?alt=media",
+                    "image_name": "superman"
+                },
+                {
+                    "id": "9",
+                    "name": "棒式",
+                    "sets": 3,
+                    "rest_seconds": 60,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FPlank.json?alt=media",
+                    "image_name": "plank"
+                },
+                {
+                    "id": "10",
+                    "name": "側棒式",
+                    "sets": 3,
+                    "rest_seconds": 60,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FSide_plank.json?alt=media",
+                    "image_name": "side_plank"
+                }
             ]
         },
         {
             "name": "全身訓練",
             "details": [
-                { "id": "1",
-                    "name": "手臂彎舉","sets": 1,"targetCount":5, "rest_seconds": 5 , "lottie_url": "https://cdn.lottielab.com/l/9iiJoCxhnaQMY7.json", "image_name": "biceps"
+                {
+                    "id": "1",
+                    "name": "手臂彎舉",
+                    "sets": 1,
+                    "targetCount": 5,
+                    "rest_seconds": 5,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FBiceps.json?alt=media&token=4a7c01b4-c2cd-453e-8f89-0d0965a42e21",
+                    "image_name": "biceps"
                 },
-                { "id": "3", "name": "手臂伸展","sets": 1,"targetCount":5, "rest_seconds": 3 ,"lottie_url": "https://cdn.lottielab.com/l/9eUKBNaPSH5ExU.json", "image_name": "shoulder_press",},
-                { "id": "7","name": "太空椅深蹲", "sets": 1,"targetTime":60, "rest_seconds": 15 , "lottie_url": "wall_squat", "image_name": "wall_squat"},
-                { "id": "9", "name": "棒式","sets": 3, "rest_seconds": 60 ,
-                    "lottie_url":"plank", "image_name": "plank"},
+                {
+                    "id": "3",
+                    "name": "手臂伸展",
+                    "sets": 1,
+                    "targetCount": 5,
+                    "rest_seconds": 3,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FElbow_extension.json?alt=media&token=e8262874-cb7f-4402-9566-e0a6ff653169",
+                    "image_name": "elbow_extension"
+                },
+                {
+                    "id": "7",
+                    "name": "太空椅深蹲",
+                    "sets": 1,
+                    "targetTime": 60,
+                    "rest_seconds": 15,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FWall_squat.json?alt=media",
+                    "image_name": "wall_squat"
+                },
+                {
+                    "id": "9",
+                    "name": "棒式",
+                    "sets": 3,
+                    "rest_seconds": 60,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FPlank.json?alt=media",
+                    "image_name": "plank"
+                }
             ]
         }
     ]

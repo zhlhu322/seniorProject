@@ -16,6 +16,26 @@ struct cusPlan_edit: View {
     
     @State private var selectedExercise: [ExerciseDetail] = []
 
+    private var customWorkoutPlan: WorkoutPlan {
+        WorkoutPlan(
+            name: "自訂組合",
+            details: selectedExercise.map { detail in
+                let isTimedExercise = detail.id == "6" || detail.id == "7"
+
+                return PlanDetails(
+                    id: detail.id,
+                    name: detail.name,
+                    sets: 1,
+                    targetCount: isTimedExercise ? nil : 5,
+                    targetTime: isTimedExercise ? 30 : nil,
+                    rest_seconds: 10,
+                    lottie_url: detail.lottie_url,
+                    image_name: detail.image_name
+                )
+            }
+        )
+    }
+
     
     var body: some View {
         
@@ -55,6 +75,20 @@ struct cusPlan_edit: View {
                         selectedExerciseIDs.contains($0.id) }
                     print(selectedExercise)
                 }
+
+            Button(action: {
+                path.append(.blePairing(plan: customWorkoutPlan))
+            }) {
+                Text("開始運動")
+                    .font(.system(size: 20, design: .default))
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.white)
+                    .frame(width: 345, height: 64)
+                    .background(selectedExercise.isEmpty ? Color.gray : Color.accentColor)
+                    .cornerRadius(16)
+            }
+            .disabled(selectedExercise.isEmpty)
+            .padding(.bottom, 30)
         }
         
     }

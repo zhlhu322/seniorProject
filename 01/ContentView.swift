@@ -21,6 +21,7 @@ enum PlanRoute: Hashable {
 
 struct ContentView: View {
     @State private var path: [PlanRoute] = []
+
     var body: some View {
         NavigationStack(path: $path) {
             IntroView(path: $path)

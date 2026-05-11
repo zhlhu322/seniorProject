@@ -25,6 +25,10 @@ struct PlanDetails: Identifiable,Codable, Hashable {
     enum CodingKeys: String, CodingKey {
         case id, name, sets, targetCount, targetTime, rest_seconds,lottie_url,image_name
     }
+
+    var isTimedExercise: Bool {
+        id == "6" || id == "7"
+    }
 }
 
 func loadWorkoutPlans() -> [WorkoutPlan] {

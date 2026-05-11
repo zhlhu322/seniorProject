@@ -17,9 +17,14 @@ struct workoutTimingView: View {
     @State private var isResting: Bool = false
     @State private var currentRound: Int = 0
     @State private var timer: Timer?
+    @State private var hasCompletedExercise = false
 
     var currentExercise: PlanDetails {
         plan.details[exerciseIndex]
+    }
+
+    private var lottieURL: URL? {
+        URL(string: currentExercise.lottie_url)
     }
 
     var body: some View {
@@ -47,13 +52,35 @@ struct workoutTimingView: View {
                 .frame(height:UIScreen.main.bounds.height*0.15)
             
             VStack {
-                Text("\(isResting ? "休息" : "運動"): \(remainingSeconds)秒")  // 顯示倒數秒數
-                    .foregroundColor(Color(.white))
-                    .font(.system(size: 20))
-                Image(isResting ? "rest" : currentExercise.image_name)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width:200,height:200)
+                HStack(alignment: .bottom) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("倒數")
+                        Text("計時")
+                    }
+                    .foregroundColor(.white)
+                    .font(.system(size: 35))
+
+                    Text("\(remainingSeconds)")
+                        .foregroundColor(.white)
+                        .font(.system(size: 80, weight: .bold))
+
+                    Text("秒")
+                        .foregroundColor(.white)
+                        .font(.system(size: 35))
+                        .padding(.bottom, 12)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 30)
+
+                if let lottieURL {
+                    ExerciseLottieView(url: lottieURL)
+                        .frame(width: 220, height: 220)
+                } else {
+                    Image(currentExercise.image_name)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 220, height: 220)
+                }
                 
                 Text("\(currentExercise.name)")
                     .font(.title)
@@ -76,18 +103,11 @@ struct workoutTimingView: View {
     }
     
     private func startTimer() {
-        // 根據動作ID初始化
-        if let idValue = Int(currentExercise.id) {
-            if idValue == 7 { // 深蹲：10秒運動 + 5秒休息，重複3次
-                currentRound = 1
-                remainingSeconds = 10
-                isResting = false
-            } else if idValue == 9 { // 棒式：30秒運動
-                currentRound = 1
-                remainingSeconds = 30
-                isResting = false
-            }
-        }
+        timer?.invalidate()
+        hasCompletedExercise = false
+        currentRound = 1
+        remainingSeconds = 30
+        isResting = false
         
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if remainingSeconds > 0 {
@@ -99,36 +119,23 @@ struct workoutTimingView: View {
     }
     
     private func handleTimerComplete() {
-        if let idValue = Int(currentExercise.id) {
-            if idValue == 7 { // 深蹲
-                if !isResting && currentRound < 3 {
-                    // 運動完成，進入休息
-                    isResting = true
-                    remainingSeconds = 5
-                } else if isResting && currentRound < 3 {
-                    // 休息完成，進入下一輪運動
-                    isResting = false
-                    currentRound += 1
-                    remainingSeconds = 10
-                } else {
-                    // 完成3輪，進入下一個動作或完成
-                    completeExercise()
-                }
-            } else if idValue == 9 { // 棒式
-                // 30秒完成，進入下一個動作或完成
-                completeExercise()
-            }
-        }
+        completeExercise()
     }
     
     private func completeExercise() {
+        guard !hasCompletedExercise else { return }
+        hasCompletedExercise = true
         timer?.invalidate()
         
         if exerciseIndex + 1 < plan.details.count {
             // ▶️ 當前動作做完，進入下一個動作
+            let nextExerciseID = plan.details[exerciseIndex + 1].id
+            bluetoothManager.sendActionType(nextExerciseID)
+            print("📤 傳送下一個動作ID: \(nextExerciseID)")
             path.append(.rest(plan: plan, exerciseIndex: exerciseIndex + 1, setIndex: 0))
         } else {
             // 🏁 全部完成
+            bluetoothManager.sendActionType(String(0))
             path.append(.workoutComplete(plan: plan))
         }
     }
