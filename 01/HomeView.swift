@@ -77,7 +77,6 @@ struct HomeView: View {
         ZStack{
             Color(.background).ignoresSafeArea()
             VStack{
-                Spacer().frame(height: 8)
                 Text("本週運動")
                     .foregroundStyle(Color(.black))
                     .padding(.bottom,10)
