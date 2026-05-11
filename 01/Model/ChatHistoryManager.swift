@@ -39,12 +39,14 @@ class ChatHistoryManager {
             "timestamp": Timestamp(date: message.timestamp)
         ]
         
-        // 如果有圖片，轉換為 Base64 儲存
-        if let image = message.image,
-           let imageData = image.jpegData(compressionQuality: 0.5) {
-            let base64String = imageData.base64EncodedString()
-            messageData["imageBase64"] = base64String
-            print("💾 [ChatHistory] 儲存訊息（含圖片，大小: \(imageData.count) bytes）")
+        // 如果有圖片，縮小後轉換為 Base64 儲存（Firestore 欄位上限約 1MB）
+        if let image = message.image {
+            let resized = Self.resizeImage(image, maxDimension: 512)
+            if let imageData = resized.jpegData(compressionQuality: 0.4) {
+                let base64String = imageData.base64EncodedString()
+                messageData["imageBase64"] = base64String
+                print("💾 [ChatHistory] 儲存訊息（含圖片，大小: \(imageData.count / 1024) KB）")
+            }
         } else {
             print("💾 [ChatHistory] 儲存訊息（純文字）")
         }
@@ -187,6 +189,19 @@ class ChatHistoryManager {
             }
     }
     
+    // MARK: - 圖片縮放
+    private static func resizeImage(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let width = image.size.width
+        let height = image.size.height
+        guard width > maxDimension || height > maxDimension else { return image }
+        let scale = width > height ? maxDimension / width : maxDimension / height
+        let newSize = CGSize(width: width * scale, height: height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+
     // MARK: - 刪除所有記錄
     /// 刪除當前使用者的所有聊天記錄（開發用）
     func deleteAllMessages(completion: @escaping (Bool) -> Void) {

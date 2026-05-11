@@ -357,11 +357,18 @@ class AuthenticationViewModel: ObservableObject {
     }
     
     func uploadAvatar(_ image: UIImage, completion: @escaping (Bool) -> Void) {
-        guard let uid = Auth.auth().currentUser?.uid,
-              let data = image.jpegData(compressionQuality: 0.8) else {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("❌ 頭像上傳失敗：無法取得使用者 UID")
             completion(false)
             return
         }
+        let resized = Self.resizeImage(image, maxDimension: 512)
+        guard let data = resized.jpegData(compressionQuality: 0.7) else {
+            print("❌ 頭像上傳失敗：圖片編碼失敗")
+            completion(false)
+            return
+        }
+        print("📸 [Avatar] 上傳大小: \(data.count / 1024) KB (原始: \(Int(image.size.width))x\(Int(image.size.height)) → \(Int(resized.size.width))x\(Int(resized.size.height)))")
         let ref = Storage.storage().reference().child("avatars/\(uid).jpg")
         let metadata = StorageMetadata()
         metadata.contentType = "image/jpeg"
@@ -393,6 +400,18 @@ class AuthenticationViewModel: ObservableObject {
                     }
                 }
             }
+        }
+    }
+
+    private static func resizeImage(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let width = image.size.width
+        let height = image.size.height
+        guard width > maxDimension || height > maxDimension else { return image }
+        let scale = width > height ? maxDimension / width : maxDimension / height
+        let newSize = CGSize(width: width * scale, height: height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
 
