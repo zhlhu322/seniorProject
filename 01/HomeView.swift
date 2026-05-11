@@ -56,20 +56,20 @@ struct HomeView: View {
         }
     }
     
-    // 獲取最近運動記錄的所有動作（展開成一維陣列）
+    // 獲取近期做過的不重複動作（以 exerciseId 去重，最多顯示 9 張）
     func getAllRecentExercises() -> [(String, String)] {
+        var seen = Set<String>()
         var exercises: [(String, String)] = []
-        let recentWorkouts = Array(historyManager.recentWorkouts.prefix(3))
-        
-        for workout in recentWorkouts {
-            let workoutExercises = Array(workout.exercises.prefix(3))
-            for exercise in workoutExercises {
-                // 使用 exerciseId + exerciseName 作為唯一 ID
-                let uniqueId = "\(workout.id ?? UUID().uuidString)_\(exercise.exerciseId)"
-                exercises.append((uniqueId, exercise.exerciseName))
+
+        for workout in historyManager.recentWorkouts {
+            for exercise in workout.exercises {
+                guard !seen.contains(exercise.exerciseId) else { continue }
+                seen.insert(exercise.exerciseId)
+                exercises.append((exercise.exerciseId, exercise.exerciseName))
+                if exercises.count >= 9 { return exercises }
             }
         }
-        
+
         return exercises
     }
     
