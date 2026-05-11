@@ -16,6 +16,12 @@ struct ExerciseDetail: Codable, Identifiable, Hashable {
     let flexibility: Int?
 }
 
+extension ExerciseDetail {
+    var isTimedExercise: Bool {
+        type.contains("計時")
+    }
+}
+
 func loadAllExerciseDetails() -> [ExerciseDetail] {
     guard let url = Bundle.main.url(forResource: "workout_exercises", withExtension: "json"),
           let data = try? Data(contentsOf: url) else {

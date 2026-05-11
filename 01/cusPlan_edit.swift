@@ -20,14 +20,12 @@ struct cusPlan_edit: View {
         WorkoutPlan(
             name: "自訂組合",
             details: selectedExercise.map { detail in
-                let isTimedExercise = detail.id == "6" || detail.id == "7"
-
                 return PlanDetails(
                     id: detail.id,
                     name: detail.name,
                     sets: 1,
-                    targetCount: isTimedExercise ? nil : 5,
-                    targetTime: isTimedExercise ? 30 : nil,
+                    targetCount: detail.isTimedExercise ? nil : 5,
+                    targetTime: detail.isTimedExercise ? 30 : nil,
                     rest_seconds: 10,
                     lottie_url: detail.lottie_url,
                     image_name: detail.image_name
@@ -51,6 +49,14 @@ struct cusPlan_edit: View {
                         Text(exercise.name)
                             .foregroundStyle(Color(.background))
                         Spacer()
+                        Text(exercise.isTimedExercise ? "計時" : "計次")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color(.accent))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Color(.background))
+                            .cornerRadius(10)
                         Image(systemName: "minus.circle.fill")
                             .frame(width:40, height:40)
                             .foregroundStyle(Color(.background))

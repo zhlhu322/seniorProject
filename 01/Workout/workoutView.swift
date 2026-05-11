@@ -50,7 +50,6 @@ struct workoutView: View {
                 .frame(height:UIScreen.main.bounds.height*0.15)
             
             VStack {
-                // 次數文字靠左
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("目前")
@@ -63,7 +62,7 @@ struct workoutView: View {
                         .foregroundColor(.white)
                         .font(.system(size: 80, weight: .bold))
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal, 30)
                 
                 // 動畫獨立一層，不與文字重疊
@@ -130,18 +129,33 @@ struct ExerciseLottieView: UIViewRepresentable {
         Coordinator()
     }
 
-    func makeUIView(context: Context) -> LottieAnimationView {
-        let view = LottieAnimationView()
-        view.contentMode = .scaleAspectFit
-        view.loopMode = .loop
-        view.clipsToBounds = false
-        loadAnimation(into: view, context: context)
-        return view
+    func makeUIView(context: Context) -> UIView {
+        let containerView = UIView()
+        containerView.clipsToBounds = true
+
+        let animationView = LottieAnimationView()
+        animationView.contentMode = .scaleAspectFit
+        animationView.loopMode = .loop
+        animationView.clipsToBounds = true
+        animationView.translatesAutoresizingMaskIntoConstraints = false
+
+        containerView.addSubview(animationView)
+        NSLayoutConstraint.activate([
+            animationView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            animationView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            animationView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            animationView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        ])
+
+        context.coordinator.animationView = animationView
+        loadAnimation(into: animationView, context: context)
+        return containerView
     }
 
-    func updateUIView(_ uiView: LottieAnimationView, context: Context) {
+    func updateUIView(_ uiView: UIView, context: Context) {
         guard context.coordinator.currentURL != url else { return }
-        loadAnimation(into: uiView, context: context)
+        guard let animationView = context.coordinator.animationView else { return }
+        loadAnimation(into: animationView, context: context)
     }
 
     private func loadAnimation(into view: LottieAnimationView, context: Context) {
@@ -163,6 +177,7 @@ struct ExerciseLottieView: UIViewRepresentable {
 
     final class Coordinator {
         var currentURL: URL?
+        weak var animationView: LottieAnimationView?
     }
 }
 

@@ -56,7 +56,7 @@ struct LevelUpView: View {
     
     // 計算健身分數（無條件進位）
     private var fitnessScore: Int {
-        let score = (1.2 * Double(totalStrength) + 1.0 * Double(totalEndurance) + 0.8 * Double(totalFlexibility))
+        let score = (1.2 * Double(totalStrength) + 1.0 * Double(totalEndurance) + 0.8 * Double(totalFlexibility)) + 7
         return Int(ceil(score))
     }
     

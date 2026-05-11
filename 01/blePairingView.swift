@@ -419,6 +419,14 @@ struct blePairingView: View {
             self.plan = plan
             print("workoutPlan: \(plan)")
     }
+
+    private var initialWorkoutRoute: PlanRoute {
+        if plan.details.first?.isTimedExercise == true {
+            return .workoutTiming(plan: plan, exerciseIndex: 0, setIndex: 0)
+        }
+
+        return .workout(plan: plan, exerciseIndex: 0, setIndex: 0)
+    }
     
     var body: some View {
         VStack {
@@ -509,7 +517,7 @@ struct blePairingView: View {
             .onChange(of: bluetoothManager.startAppend) { _, shouldAppend in
                 guard shouldAppend, !hasAppendedWorkoutRoute else { return }
                 hasAppendedWorkoutRoute = true
-                path.append(.workout(plan: plan, exerciseIndex: 0, setIndex: 0))
+                path.append(initialWorkoutRoute)
             }
             .onReceive(scanTimer) { _ in
                 if bluetoothManager.connectionStatus == .connected &&
@@ -545,6 +553,14 @@ struct WaitingView: View {
     @Binding var path: [PlanRoute]
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     let plan: WorkoutPlan
+
+    private var initialWorkoutRoute: PlanRoute {
+        if plan.details.first?.isTimedExercise == true {
+            return .workoutTiming(plan: plan, exerciseIndex: 0, setIndex: 0)
+        }
+
+        return .workout(plan: plan, exerciseIndex: 0, setIndex: 0)
+    }
     
     var body: some View {
         VStack {
@@ -590,7 +606,7 @@ struct WaitingView: View {
                     if (bluetoothManager.startAppend && !didNavigate) {
                         didNavigate = true
                         print("✅ 執行跳轉, didNavigate 設為: \(didNavigate)")
-                        path.append(.workout(plan: plan, exerciseIndex: 0, setIndex: 0))
+                        path.append(initialWorkoutRoute)
                     }
                 }
                 hasSentAction = true
