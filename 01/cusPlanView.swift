@@ -16,6 +16,14 @@ struct cusPlanView: View {
         }
     }
 
+    private var countExercises: [ExerciseDetail] {
+        filteredExercises.filter { !$0.isTimedExercise }
+    }
+
+    private var timedExercises: [ExerciseDetail] {
+        filteredExercises.filter { $0.isTimedExercise }
+    }
+
     let columns = [
         GridItem(.flexible(), spacing: 10),
         GridItem(.flexible(), spacing: 10)
@@ -44,9 +52,9 @@ struct cusPlanView: View {
     }
 
     
-    private var exerciseGrid: some View {
+    private func exerciseGrid(for exercises: [ExerciseDetail]) -> some View {
         LazyVGrid(columns: columns, spacing: 15) {
-            ForEach(filteredExercises, id: \.self) { detail in
+            ForEach(exercises, id: \.self) { detail in
                 exerciseInfoButton(
                     title: detail.name,
                     onTap: {
@@ -62,6 +70,19 @@ struct cusPlanView: View {
         }
         .padding(.horizontal)
         .padding(.top, 15)
+    }
+
+    @ViewBuilder
+    private func exerciseSection(title: String, exercises: [ExerciseDetail]) -> some View {
+        if !exercises.isEmpty {
+            Text(title)
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+                .padding(.top, 18)
+
+            exerciseGrid(for: exercises)
+        }
     }
 
     
@@ -84,7 +105,8 @@ struct cusPlanView: View {
                         .padding(.horizontal)
                         .padding(.top, 15)
 
-                    exerciseGrid
+                    exerciseSection(title: "計次動作", exercises: countExercises)
+                    exerciseSection(title: "計時動作", exercises: timedExercises)
                 }
                 .background(Color.white)
                 

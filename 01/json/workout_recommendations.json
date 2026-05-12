@@ -1,47 +1,6 @@
 {
     "workout_sets": [
         {
-            "name": "test訓練",
-            "details": [
-                {
-                    "id": "1",
-                    "name": "手臂彎舉",
-                    "sets": 1,
-                    "targetCount": 5,
-                    "rest_seconds": 5,
-                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FBiceps.json?alt=media&token=4a7c01b4-c2cd-453e-8f89-0d0965a42e21",
-                    "image_name": "biceps"
-                },
-                {
-                    "id": "2",
-                    "name": "肩推",
-                    "sets": 2,
-                    "targetCount": 5,
-                    "rest_seconds": 5,
-                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FShoulder_press.json?alt=media",
-                    "image_name": "shoulder_press"
-                },
-                {
-                    "id": "3",
-                    "name": "手臂伸展",
-                    "sets": 1,
-                    "targetCount": 5,
-                    "rest_seconds": 3,
-                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FElbow_extension.json?alt=media&token=e8262874-cb7f-4402-9566-e0a6ff653169",
-                    "image_name": "elbow_extension"
-                },
-                {
-                    "id": "5",
-                    "name": "划船",
-                    "sets": 1,
-                    "targetCount": 5,
-                    "rest_seconds": 7,
-                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FSeated_row.json?alt=media&token=fa64490b-e363-4e71-99c4-900bc289520d",
-                    "image_name": "seated_row"
-                }
-            ]
-        },
-        {
             "name": "上肢訓練",
             "details": [
                 {
@@ -57,10 +16,19 @@
                     "id": "3",
                     "name": "手臂伸展",
                     "sets": 2,
-                    "targetCount": 3,
+                    "targetCount": 5,
                     "rest_seconds": 10,
                     "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FElbow_extension.json?alt=media&token=e8262874-cb7f-4402-9566-e0a6ff653169",
                     "image_name": "elbow_extension"
+                },
+                {
+                    "id": "2",
+                    "name": "肩推",
+                    "sets": 2,
+                    "targetCount": 5,
+                    "rest_seconds": 5,
+                    "lottie_url": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FShoulder_press.json?alt=media&token=0e5dd5f2-1c92-4682-ab9f-149a2dbf8949",
+                    "image_name": "shoulder_press"
                 },
                 {
                     "id": "5",

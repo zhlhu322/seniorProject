@@ -53,23 +53,6 @@
             "flexibility":2
         },
         {
-            "id": "4",
-            "name": "胸推",
-            "image_name": "chest_press",
-            "lottie_url":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FChest_press.json?alt=media&token=3d2d5964-033d-4669-a6b6-f4f66f5c0300",
-            "target_muscle": "胸肌",
-            "equipment": "彈力帶/水瓶",
-            "type": "動態 計次",
-            "band_position": "手腕",
-            "steps": [
-                "平躺或站立，雙手持器材於胸前。",
-                "用力向前推至手臂伸直，然後慢慢還原。"
-            ],
-            "strength":3,
-            "endurance":1,
-            "flexibility":0
-        },
-        {
             "id": "5",
             "name": "坐姿划船",
             "image_name": "seated_row",

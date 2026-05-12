@@ -38,6 +38,7 @@ struct workoutTimingView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                Text(" \(setIndex+1)/\(currentExercise.sets)")
                     .font(.system(size: 25))
                     .foregroundColor(Color(.white))
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -69,12 +70,12 @@ struct workoutTimingView: View {
                         .font(.system(size: 35))
                         .padding(.bottom, 12)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal, 30)
 
                 if let lottieURL {
                     ExerciseLottieView(url: lottieURL)
-                        .frame(width: 220, height: 220)
+                        .frame(width: 320, height: 320)
                 } else {
                     Image(currentExercise.image_name)
                         .resizable()
@@ -96,9 +97,11 @@ struct workoutTimingView: View {
         .onAppear {
             print("進入動作頁面")
             startTimer()
+            UIApplication.shared.isIdleTimerDisabled = true
         }
         .onDisappear {
             timer?.invalidate()
+            UIApplication.shared.isIdleTimerDisabled = false
         }
     }
     
@@ -106,7 +109,7 @@ struct workoutTimingView: View {
         timer?.invalidate()
         hasCompletedExercise = false
         currentRound = 1
-        remainingSeconds = 30
+        remainingSeconds = currentExercise.targetTime ?? 30
         isResting = false
         
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
@@ -135,6 +138,7 @@ struct workoutTimingView: View {
             path.append(.rest(plan: plan, exerciseIndex: exerciseIndex + 1, setIndex: 0))
         } else {
             // 🏁 全部完成
+            print("全部完成")
             bluetoothManager.sendActionType(String(0))
             path.append(.workoutComplete(plan: plan))
         }
