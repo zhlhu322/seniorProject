@@ -11,6 +11,7 @@ struct MyChickenMeatView: View {
     @ObservedObject private var chickenManager = MyChickenManager.shared
     @Binding var path: [ShopRoute]
     @State private var isLoading = false
+    @State private var isAnimationLoading = true
     @State private var loadError: String?
     private let animationManager = AnimationManager.shared
 
@@ -52,6 +53,10 @@ struct MyChickenMeatView: View {
 
     private var maxXP: Int {
         chickenManager.xp <= 10 ? 10 : 50
+    }
+
+    private var animationSize: CGFloat {
+        isHealthyIdle ? 150 : 120
     }
     
     var body: some View {
@@ -231,9 +236,32 @@ struct MyChickenMeatView: View {
                     // MARK: - 角色圖片
                     if let idleAnimationURLString,
                        let url = URL(string: idleAnimationURLString) {
-                        LottieViewStorage2(url: url)
-                            .frame(width: isHealthyIdle ? 150 : 120,
-                                   height: isHealthyIdle ? 150 : 120)
+                        ZStack {
+                            if isAnimationLoading {
+                                ProgressView()
+                                    .controlSize(.large)
+                                    .scaleEffect(1.4)
+                            }
+
+                            LottieViewStorage2(
+                                url: url,
+                                onLoadingStateChange: { isLoading in
+                                    isAnimationLoading = isLoading
+                                }
+                            )
+                            .id(idleAnimationURLString)
+                            .allowsHitTesting(false)
+                            .opacity(isAnimationLoading ? 0 : 1)
+                        }
+                            .frame(width: animationSize, height: animationSize)
+                            .frame(maxWidth: .infinity)
+                            .offset(y: -20)
+                            .padding(.bottom, 30)
+                    } else {
+                        ProgressView()
+                            .controlSize(.large)
+                            .scaleEffect(1.4)
+                            .frame(width: animationSize, height: animationSize)
                             .frame(maxWidth: .infinity)
                             .offset(y: -20)
                             .padding(.bottom, 30)
@@ -285,6 +313,7 @@ struct MyChickenMeatView: View {
     // MARK: - 載入小雞資料
     private func loadChickenData() {
         isLoading = true
+        isAnimationLoading = true
         loadError = nil
         
         chickenManager.loadChickenData { error in
@@ -303,27 +332,51 @@ struct MyChickenMeatView: View {
 
 struct LottieViewStorage2: UIViewRepresentable {
     let url: URL
+    var onLoadingStateChange: (Bool) -> Void = { _ in }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     func makeUIView(context: Context) -> LottieAnimationView {
         let view = LottieAnimationView()
         view.contentMode = .scaleAspectFit
         view.loopMode = .loop
 
-        LottieAnimation.loadedFrom(url: url, closure: { animation in
-            guard let animation = animation else {
-                print("❌ Lottie 動畫載入失敗")
-                return
-            }
-            DispatchQueue.main.async {
-                view.animation = animation
-                view.play()
-            }
-        }, animationCache: nil)
+        loadAnimation(into: view, context: context)
 
         return view
     }
 
-    func updateUIView(_ uiView: LottieAnimationView, context: Context) {}
+    func updateUIView(_ uiView: LottieAnimationView, context: Context) {
+        guard context.coordinator.currentURL != url else { return }
+
+        loadAnimation(into: uiView, context: context)
+    }
+
+    private func loadAnimation(into view: LottieAnimationView, context: Context) {
+        context.coordinator.currentURL = url
+        onLoadingStateChange(true)
+
+        LottieAnimation.loadedFrom(url: url, closure: { animation in
+            DispatchQueue.main.async {
+                guard let animation = animation else {
+                    print("❌ Lottie 動畫載入失敗")
+                    onLoadingStateChange(false)
+                    return
+                }
+
+                view.stop()
+                view.animation = animation
+                view.play()
+                onLoadingStateChange(false)
+            }
+        }, animationCache: nil)
+    }
+
+    final class Coordinator {
+        var currentURL: URL?
+    }
 }
 
 #Preview {
