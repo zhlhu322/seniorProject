@@ -51,9 +51,8 @@ class GeminiAIService {
     
     /// 初始化 - 優先使用傳入的 apiKey；若未提供，從 Info.plist 的 GEMINI_API_KEY 讀取；找不到時會設為空字串（會導致呼叫時拋出錯誤）
     init(apiKey: String? = nil) {
-            // 如果初始化時有傳入則用傳入的，否則統一從 AppEnvironment 抓
             let finalKey = apiKey ?? AppEnvironment.geminiAPIKey
-            
+
             if finalKey.isEmpty {
                 print("⚠️ 警告：Gemini API Key 為空，請求將會失敗")
             }
@@ -71,10 +70,12 @@ class GeminiAIService {
             throw AIServiceError.invalidAPIKey
         }
         
-        // 將圖片轉換為 Base64
-        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+        // 縮小圖片並轉換為 Base64
+        let resizedImage = Self.resizeImageIfNeeded(image, maxDimension: 1024)
+        guard let imageData = resizedImage.jpegData(compressionQuality: 0.6) else {
             throw AIServiceError.imageEncodingFailed
         }
+        print("📸 [GeminiAI] 圖片大小: \(imageData.count / 1024) KB (原始: \(Int(image.size.width))x\(Int(image.size.height)) → \(Int(resizedImage.size.width))x\(Int(resizedImage.size.height)))")
         let base64Image = imageData.base64EncodedString()
         
         // 構建 Prompt（包含使用者問題）
@@ -101,7 +102,7 @@ class GeminiAIService {
                 "temperature": 0.7,
                 "topK": 40,
                 "topP": 0.95,
-                "maxOutputTokens": 4096
+                "maxOutputTokens": 8192
             ],
             "safetySettings": [
                 [
@@ -154,7 +155,7 @@ class GeminiAIService {
                 "temperature": 0.8,
                 "topK": 40,
                 "topP": 0.95,
-                "maxOutputTokens": 1024
+                "maxOutputTokens": 4096
             ]
         ]
         
@@ -170,68 +171,33 @@ class GeminiAIService {
         let plansList = GeminiAIService.workoutPlans.joined(separator: "、")
         
         var prompt = """
-        你是「智能寶寶肌胸 🐥」，一個專業、友善且鼓舞人心的健身助手。
-        
-        ## 你的知識庫
-        
-        **可推薦的訓練組合（4個）：**
-        \(plansList)
-        
-        **可推薦的單一動作（10個）：**
-        \(exercisesList)
-        
-        ## 你的任務
-        
-        根據以下 Vision 系統的體態分析報告和圖片，生成一份詳細的中文體態分析報告。
-        
-        **Vision 分析報告：**
+        你是「智能寶寶肌胸 🐥」，一個專業且友善的健身助手。
+
+        可推薦的訓練組合：\(plansList)
+        可推薦的動作：\(exercisesList)
+
+        請仔細觀察使用者提供的圖片，分析以下體態細節：
+        - 頭部位置：是否有前傾
+        - 肩膀：是否高低不一、圓肩、聳肩
+        - 脊椎：是否有駝背、側彎跡象
+        - 骨盆：是否前傾或後傾
+        - 整體對稱性：左右是否平衡
+
+        以下為裝置端 Vision 輔助數據，供交叉參考（以你對圖片的觀察為主）：
         \(analysisReport)
-        
-        ## 你的回覆要求
-        
-        請用清晰、專業且鼓舞人心的口吻，包含以下內容：
-        
-        1. **體態評估總結**
-           - 用 2-3 句話簡要總結整體體態狀況
-           - 強調優點和需要改善的地方
-        
-        2. **🔎主要問題分析**（如果有檢測到問題）
-           - 說明時不用提到分析報告的來源與細節
-           - 簡要說明每個檢測到的體態問題
-           - 用1-2句話解釋可能的成因和影響
-           - 如果沒有問題，簡單鼓勵繼續保持
-        
-        3. **🎯 推薦訓練組合**（必須包含）
-           - 從 [\(plansList)] 中**精確選擇一個**最適合的訓練組合
-           - 必須使用完全相同的名稱
-           - 用 1-2 句話解釋為什麼推薦這個組合
-           - 格式：「🎯 推薦訓練組合：[組合名稱]」
-        
-        4. **💪 建議自訂動作**（必須包含）
-           - 從 [\(exercisesList)] 中**精確選擇 3 個**最適合的動作
-           - 必須使用完全相同的動作名稱
-           - 每個動作用 1 句話說明其幫助
-           - 格式：
-             「💪 建議自訂動作：
-             1. [動作名稱] - [說明]
-             2. [動作名稱] - [說明]
-             3. [動作名稱] - [說明]」
-        
-        5. **💡 日常建議**
-           - 提供 1-2 個實用的日常姿勢建議
-           - 給予鼓勵和激勵
-        
-        ## 格式規範（重要）
-        
-        - 使用簡單的純文字格式，不要使用複雜的 Markdown 語法
-        - 使用 emoji 作為標題符號（如 🎯 💪 💡）
-        - 不要使用 ### 或 ** 等 Markdown 標記
-        - 使用空行分隔段落
-        - 確保推薦的組合和動作名稱與知識庫完全一致
-        - 確保回覆完整，不要截斷
-        - 語氣專業但親切，充滿正能量
-        
-        請開始你的完整分析（確保包含所有 5 個部分）：
+
+        請用繁體中文回覆，總字數需小於 150 字，包含以下內容：
+
+        1. 🧍 體態總結（1~2句，描述你從圖片中觀察到的整體姿勢狀況）
+        2. 🔎 問題分析（針對每個發現的問題，說明觀察到什麼、可能的成因，各 1～2 句；無明顯問題則說明體態良好）
+        3. 🎯 推薦訓練組合：從 [\(plansList)] 精確選一個，並簡述原因
+        4. 💪 建議動作：從 [\(exercisesList)] 精確選 2 個，格式：
+           1. [名稱] - [針對什麼問題、為什麼推薦]
+           2. [名稱] - [針對什麼問題、為什麼推薦]
+        5. 💡 日常建議（1～2 句簡短的姿勢改善提醒）
+
+        不要使用 Markdown 標記（###、**），用 emoji 當標題，語氣親切正向。
+        列點請用bullet項目符號呈現並且所有的回覆中不要提到“vision報告“
         """
         
         // 如果有使用者問題，添加到 Prompt 中
@@ -248,30 +214,15 @@ class GeminiAIService {
         let plansList = GeminiAIService.workoutPlans.joined(separator: "、")
         
         return """
-        你是「智能寶寶肌胸 🐥」，一個專業、友善且鼓舞人心的健身助手。
-        
-        ## 你的知識庫
-        
-        **App 提供的訓練組合：**
-        \(plansList)
-        
-        **App 提供的單一動作：**
-        \(exercisesList)
-        
-        ## 使用者問題
-        
-        \(question)
-        
-        ## 回覆要求
-        
-        - 用專業但親切的口吻回答
-        - 如果問題與健身、體態、運動相關，提供專業建議
-        - 如果適合，可以推薦使用 App 的功能（如上傳照片分析體態）
-        - 如果推薦動作或訓練，優先推薦知識庫中的內容
-        - 使用適當的 emoji 讓回覆更生動
-        - 保持簡潔但資訊豐富
-        
-        請回答：
+        你是「智能寶寶肌胸 🐥」，一個專業且友善的健身助手。
+        App 提供的訓練組合：\(plansList)
+        App 提供的動作：\(exercisesList)
+
+        使用者問題：\(question)
+
+        請用繁體中文回答，200 字以內，語氣親切，適時使用 emoji。
+        不要使用 Markdown 標記（###、**），用 emoji 當標題，語氣親切正向。
+        若推薦動作或訓練，請使用知識庫中的名稱。
         """
     }
     
@@ -393,11 +344,34 @@ class GeminiAIService {
         cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // 確保沒有被截斷（檢查是否有結束語）
-        if !cleaned.contains("💡") && !cleaned.contains("日常建議") && !cleaned.contains("保持") {
+        if !cleaned.contains("💡") && !cleaned.contains("💪") && !cleaned.contains("🎯") {
             print("⚠️ [GeminiAI] 回應可能不完整，長度: \(cleaned.count)")
         }
         
         return cleaned
+    }
+
+    /// 將圖片縮小到指定最大邊長，保持比例
+    private static func resizeImageIfNeeded(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let width = image.size.width
+        let height = image.size.height
+
+        guard width > maxDimension || height > maxDimension else {
+            return image
+        }
+
+        let scale: CGFloat
+        if width > height {
+            scale = maxDimension / width
+        } else {
+            scale = maxDimension / height
+        }
+
+        let newSize = CGSize(width: width * scale, height: height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
     }
 }
 
