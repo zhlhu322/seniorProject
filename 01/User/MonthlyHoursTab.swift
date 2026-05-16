@@ -75,7 +75,7 @@ struct MonthlyHoursTab: View {
             items: [
                 ComparisonItem(
                     icon: "timer",
-                    iconColor: Color(.myMint),
+                    iconColor: Color("MyMint"),
                     label: "運動時數",
                     currentText: formatMinutes(curMinutes),
                     changePercent: ComparisonItem.percent(current: curMinutes, previous: prevMinutes),
@@ -83,7 +83,7 @@ struct MonthlyHoursTab: View {
                 ),
                 ComparisonItem(
                     icon: "dumbbell.fill",
-                    iconColor: Color(.myMint),
+                    iconColor: Color("MyMint"),
                     label: "訓練次數",
                     currentText: "\(curCount)次",
                     changePercent: ComparisonItem.percent(current: curCount, previous: prevCount),
@@ -114,10 +114,10 @@ struct MonthlyHoursTab: View {
         HStack(spacing: 16) {
             ZStack {
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(Color(.myMint).opacity(0.25))
+                    .fill(Color("MyMint").opacity(0.25))
                 Image(systemName: "timer")
                     .font(.system(size: 28))
-                    .foregroundColor(Color(.myMint))
+                    .foregroundColor(Color("MyMint"))
             }
             .frame(width: 60, height: 60)
 
@@ -205,7 +205,7 @@ struct MonthlyHoursTab: View {
             )
             .foregroundStyle(
                 LinearGradient(
-                    colors: [Color(.myMint).opacity(0.3), Color(.myMint).opacity(0.0)],
+                    colors: [Color("MyMint").opacity(0.3), Color("MyMint").opacity(0.0)],
                     startPoint: .top, endPoint: .bottom
                 )
             )
@@ -215,7 +215,7 @@ struct MonthlyHoursTab: View {
                 x: .value("日", point.day),
                 y: .value("分鐘", point.minutes)
             )
-            .foregroundStyle(Color(.myMint))
+            .foregroundStyle(Color("MyMint"))
             .lineStyle(StrokeStyle(lineWidth: 2))
             .interpolationMethod(.catmullRom)
         }

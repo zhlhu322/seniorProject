@@ -35,7 +35,7 @@ struct signUpView: View {
                 
                 Text("建立帳戶")
                     .font(.largeTitle)
-                    .foregroundStyle(Color(.myMint))
+                    .foregroundStyle(Color("MyMint"))
                     .padding(.bottom, 25)
                     .padding(.horizontal, 30)
             }
@@ -143,7 +143,7 @@ struct signUpView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.top, 50)
-            .background(Color(.myMint))
+            .background(Color("MyMint"))
         }
         .navigationBarBackButtonHidden(true)
         .overlay(

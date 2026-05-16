@@ -120,7 +120,7 @@ struct PostureRecordView: View {
                 }
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity)
-                .background(Color(.myMint).opacity(0.3))
+                .background(Color("MyMint").opacity(0.3))
             }
         }
     }
@@ -223,7 +223,7 @@ struct PostureRecordView: View {
             .disabled(inputText.isEmpty && pendingImage == nil)
         }
         .padding()
-        .background(Color(.myMint))
+        .background(Color("MyMint"))
     }
     
     // MARK: - 載入聊天記錄
@@ -514,7 +514,7 @@ struct MessageBubble: View {
                         .scaledToFill()
                         .frame(maxWidth: 200, maxHeight: 300)
                         .padding()
-                        .background(Color(.myMint).opacity(0.5))
+                        .background(Color("MyMint").opacity(0.5))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
@@ -526,7 +526,7 @@ struct MessageBubble: View {
                 if !message.content.isEmpty {
                     Text(message.content)
                         .padding(12)
-                        .background(message.isUser ? Color(.myMint): Color(.white))
+                        .background(message.isUser ? Color("MyMint") : Color.white)
                         .foregroundColor(message.isUser ? .white : .black)
                         .cornerRadius(16)
                         .overlay(

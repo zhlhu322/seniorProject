@@ -75,7 +75,7 @@ struct signInView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.myMint))
+        .background(Color("MyMint"))
         .overlay(
             // 輕量的 inputAssistant removal
             InputAccessoryCleaner().frame(width: 0, height: 0)

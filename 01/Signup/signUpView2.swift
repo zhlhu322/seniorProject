@@ -34,7 +34,7 @@ struct signUpView2: View {
     
     var body: some View {
             ZStack{
-                Color(.myMint).ignoresSafeArea()
+                Color("MyMint").ignoresSafeArea()
                 VStack{
                     Text("選擇你的第一隻肌胸肉：")
                         .font(.title3)

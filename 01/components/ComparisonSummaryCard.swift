@@ -132,6 +132,6 @@ struct ComparisonSummaryCard: View {
     }
 
     private func badgeColor(isFlat: Bool, isUp: Bool) -> Color {
-        isFlat ? .gray : (isUp ? Color(.myMint) : .red)
+        isFlat ? .gray : (isUp ? Color("MyMint") : .red)
     }
 }

@@ -32,7 +32,7 @@ struct MenuRowButton: View {
         }
         .padding()
         .frame(width: 350, height: 64)
-        .background(Color(.myMint).opacity(0.5))
+        .background(Color("MyMint").opacity(0.5))
         .cornerRadius(16)
         .overlay {
             RoundedRectangle(cornerRadius: 16)

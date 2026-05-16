@@ -181,21 +181,7 @@ struct ConsecutiveDaysTab: View {
             ) {
                 ForEach(cells.indices, id: \.self) { i in
                     if let day = cells[i] {
-                        let isToday = day == todayDay
-                        let isWorkout = cachedWorkoutDays.contains(day)
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    isWorkout
-                                        ? Color(.primary)
-                                        : (isToday ? Color(.myMint).opacity(0.15) : Color.gray.opacity(0.08))
-                                )
-                            Text("\(day)")
-                                .font(.caption2)
-                                .fontWeight(isToday ? .bold : .regular)
-                                .foregroundColor(isWorkout ? .white : Color(.darkBackground))
-                        }
-                        .frame(height: 36)
+                        dayCell(day: day, todayDay: todayDay)
                     } else {
                         Color.clear.frame(height: 36)
                     }
@@ -231,6 +217,33 @@ struct ConsecutiveDaysTab: View {
             }
             .disabled(isCurrentMonth)
         }
+    }
+
+    // MARK: - 日曆日期格子
+    private func dayCellBackground(isWorkout: Bool, isToday: Bool) -> (color: Color, opacity: Double) {
+        if isWorkout {
+            return (Color(.primary), 1.0)
+        } else if isToday {
+            return (Color("MyMint"), 0.15)
+        } else {
+            return (Color.gray, 0.08)
+        }
+    }
+
+    private func dayCell(day: Int, todayDay: Int) -> some View {
+        let isToday = day == todayDay
+        let isWorkout = cachedWorkoutDays.contains(day)
+        let bg = dayCellBackground(isWorkout: isWorkout, isToday: isToday)
+        let fgColor: Color = isWorkout ? .white : Color(.darkBackground)
+
+        return ZStack {
+            Circle().fill(bg.color.opacity(bg.opacity))
+            Text("\(day)")
+                .font(.caption2)
+                .fontWeight(isToday ? .bold : .regular)
+                .foregroundColor(fgColor)
+        }
+        .frame(height: 36)
     }
 
     // MARK: - 輔助方法

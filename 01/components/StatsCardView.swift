@@ -26,7 +26,7 @@ struct StatsCardView: View {
         .cornerRadius(10)
         .overlay {
             RoundedRectangle(cornerRadius: 10)
-                .stroke(Color(.myMint), style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                .stroke(Color("MyMint"), style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
         }
     }
 }

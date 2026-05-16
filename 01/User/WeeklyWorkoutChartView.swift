@@ -114,7 +114,7 @@ struct WeeklyWorkoutChartView: View {
             items: [
                 ComparisonItem(
                     icon: "dumbbell.fill",
-                    iconColor: Color(.myMint),
+                    iconColor: Color("MyMint"),
                     label: "本週次數",
                     currentText: "\(curTotal)次",
                     changePercent: ComparisonItem.percent(current: curTotal, previous: prevTotal),
@@ -122,7 +122,7 @@ struct WeeklyWorkoutChartView: View {
                 ),
                 ComparisonItem(
                     icon: "chart.bar.fill",
-                    iconColor: Color(.myMint),
+                    iconColor: Color("MyMint"),
                     label: "日均次數",
                     currentText: String(format: "%.1f次", curAvg),
                     changePercent: ComparisonItem.percent(current: curAvg, previous: prevAvg),
@@ -138,10 +138,10 @@ struct WeeklyWorkoutChartView: View {
         HStack(spacing: 16) {
             ZStack {
                 RoundedRectangle(cornerRadius: 14)
-                    .fill(Color(.myMint).opacity(0.25))
+                    .fill(Color("MyMint").opacity(0.25))
                 Image(systemName: "dumbbell.fill")
                     .font(.system(size: 28))
-                    .foregroundColor(Color(.myMint))
+                    .foregroundColor(Color("MyMint"))
             }
             .frame(width: 60, height: 60)
 
@@ -215,7 +215,7 @@ struct WeeklyWorkoutChartView: View {
             Button(action: nextWeek) {
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundColor(isCurrentWeek ? Color.gray.opacity(0.3) : Color(.myMint))
+                    .foregroundColor(isCurrentWeek ? Color.gray.opacity(0.3) : Color("MyMint"))
             }
             .disabled(isCurrentWeek)
         }
@@ -278,7 +278,7 @@ struct WeeklyWorkoutChartView: View {
     // MARK: - 輔助方法
     private func barColor(for count: Int) -> Color {
         if count == 0 { return Color.gray.opacity(0.15) }
-        return count == cachedMaxCount ? Color(.myMint) : Color(.myMint).opacity(0.55)
+        return count == cachedMaxCount ? Color("MyMint") : Color("MyMint").opacity(0.55)
     }
 
     @ViewBuilder
@@ -289,7 +289,7 @@ struct WeeklyWorkoutChartView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(
                     count == cachedMaxCount
-                        ? Color(.myMint)
+                        ? Color("MyMint")
                         : Color(.darkBackground).opacity(0.7)
                 )
         }

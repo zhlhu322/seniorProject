@@ -144,10 +144,10 @@ struct cusPlanView: View {
                     HStack {
                         Image(systemName: "chevron.left")
                             .fontWeight(.semibold)
-                            .foregroundStyle(Color("Mint"))
+                            .foregroundStyle(Color("MyMint"))
                         
                         Text("返回")
-                            .foregroundStyle(Color("Mint"))
+                            .foregroundStyle(Color("MyMint"))
                     }
                 }
             }

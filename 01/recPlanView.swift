@@ -122,10 +122,10 @@ struct recPlanView: View {
                     HStack {
                         Image(systemName: "chevron.left")
                             .fontWeight(.semibold)
-                            .foregroundStyle(Color("Mint"))
+                            .foregroundStyle(Color("myMint"))
                         
                         Text("返回")
-                            .foregroundStyle(Color("Mint"))
+                            .foregroundStyle(Color("myMint"))
                     }
                 }
             }

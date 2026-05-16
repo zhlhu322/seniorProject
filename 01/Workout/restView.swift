@@ -101,7 +101,7 @@ struct restView: View {
             
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.myMint))
+        .background(Color("MyMint"))
     }
 }
 
