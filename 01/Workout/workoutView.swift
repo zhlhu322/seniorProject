@@ -27,22 +27,22 @@ struct workoutView: View {
     var body: some View {
         VStack(alignment: .center) {
             HStack{
-                Button(action:{
-                    
-                }){
-                    Image(systemName: "xmark")
-                        .font(.system(size: 25, weight: .black))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+//                Button(action:{
+//                    
+//                }){
+//                    Image(systemName: "xmark")
+//                        .font(.system(size: 25, weight: .black))
+//                        .foregroundColor(.white)
+//                        .frame(maxWidth: .infinity, alignment: .leading)
+//                }
                 Text(" \(setIndex+1)/\(currentExercise.sets)") // 顯示目前是第幾組
                     .font(.system(size: 25))
                     .foregroundColor(Color(.white))
                     .frame(maxWidth: .infinity, alignment: .center)
-                Image(systemName: "pause")
-                    .font(.system(size: 25, weight: .black))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+//                Image(systemName: "pause")
+//                    .font(.system(size: 25, weight: .black))
+//                    .foregroundColor(.white)
+//                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .padding()
             
@@ -87,6 +87,10 @@ struct workoutView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("PrimaryColor"))
+        .toolbar{
+            
+        }
+        .toolbarBackground(.hidden, for: .navigationBar)
         .onAppear {
             print("進入動作頁面")
             hasCompletedExercise = false

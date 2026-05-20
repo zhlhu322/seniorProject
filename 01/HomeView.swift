@@ -51,6 +51,10 @@ struct HomeView: View {
             return "plank"
         case "側棒式":
             return "side_plank"
+        case "深蹲":
+            return "squat"
+        case "弓箭步":
+            return "lunge"
         default:
             return "figure.strengthtraining.traditional"
         }

@@ -72,7 +72,7 @@
         {
             "id": "6",
             "name": "深蹲",
-            "image_name": "wall_squat",
+            "image_name": "squat",
             "lottie_url":"https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Exercise%2FSquat.json?alt=media&token=a627942c-b14f-4031-b61e-0b0def721349",
             "target_muscle": "臀腿（股四頭肌、臀大肌）",
             "equipment": "X",
