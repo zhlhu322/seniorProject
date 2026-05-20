@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import Lottie
 
 class MyChickenManager: ObservableObject {
     static let shared = MyChickenManager()
@@ -385,6 +386,8 @@ final class AnimationManager {
     static let shared = AnimationManager()
 
     private init() {}
+    private var preloadingURLs: Set<String> = []
+    private var preloadedURLs: Set<String> = []
 
     private let animationURLMap: [String: String] = [
         "baby_idle": "https://firebasestorage.googleapis.com/v0/b/countbuddy-app.firebasestorage.app/o/Stage%2Fbaby_idle.json?alt=media&token=2636bbab-0463-45e4-9a8b-c5e6eff87570",
@@ -448,5 +451,29 @@ final class AnimationManager {
 
         return animationURLMap["\(initialStage)_\(Style.idle.rawValue)"]
             ?? animationURLMap["baby_\(Style.idle.rawValue)"]
+    }
+
+    func preloadAnimation(stage: String, xp: Int, style: Style) {
+        guard let urlString = getAnimationURL(stage: stage, xp: xp, style: style),
+              !urlString.isEmpty,
+              let url = URL(string: urlString),
+              !preloadingURLs.contains(urlString),
+              !preloadedURLs.contains(urlString) else {
+            return
+        }
+
+        preloadingURLs.insert(urlString)
+
+        LottieAnimation.loadedFrom(url: url, closure: { [weak self] animation in
+            guard let self else { return }
+
+            self.preloadingURLs.remove(urlString)
+            if animation != nil {
+                self.preloadedURLs.insert(urlString)
+                print("✅ 小雞動畫已預載")
+            } else {
+                print("❌ 小雞動畫預載失敗")
+            }
+        })
     }
 }

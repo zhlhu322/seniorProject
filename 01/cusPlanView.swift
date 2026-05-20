@@ -5,6 +5,7 @@ struct cusPlanView: View {
     @State private var searchText = ""
     @State private var allDetails: [ExerciseDetail] = []
     @State private var selectedExerciseIDs: Set<String> = []
+    @FocusState private var isSearchFocused: Bool
 
     @Environment(\.presentationMode) var presentationMode
 
@@ -40,6 +41,7 @@ struct cusPlanView: View {
     private var searchBar: some View {
         TextField("輸入運動名稱", text: $searchText)
             .padding(.leading, 15)
+            .focused($isSearchFocused)
             .frame(height: 64)
             .background(Color.white)
             .cornerRadius(16)
@@ -127,6 +129,10 @@ struct cusPlanView: View {
                 .frame(maxWidth:UIScreen.main.bounds.width,alignment: .center)
                 
             }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isSearchFocused = false
         }
         .navigationTitle("自訂組合")
         .navigationBarBackButtonHidden()

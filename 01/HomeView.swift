@@ -200,6 +200,24 @@ struct HomeView: View {
         }
         // 透明 nav bar：背景色與頁面相同，視覺無差異，且不會產生 bottom border
         .toolbarBackground(.hidden, for: .navigationBar)
+        .onAppear {
+            preloadChickenAnimation()
+        }
+    }
+
+    private func preloadChickenAnimation() {
+        MyChickenManager.shared.loadChickenData { error in
+            guard error == nil else { return }
+
+            let currentStyleRaw = MyChickenManager.shared.style["currently"] as? String ?? Style.idle.rawValue
+            let currentStyle = Style(rawValue: currentStyleRaw) ?? .idle
+
+            AnimationManager.shared.preloadAnimation(
+                stage: MyChickenManager.shared.Stage,
+                xp: MyChickenManager.shared.xp,
+                style: currentStyle
+            )
+        }
     }
 }
 

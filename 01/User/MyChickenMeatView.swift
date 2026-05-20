@@ -371,7 +371,7 @@ struct LottieViewStorage2: UIViewRepresentable {
                 view.play()
                 onLoadingStateChange(false)
             }
-        }, animationCache: nil)
+        })
     }
 
     final class Coordinator {

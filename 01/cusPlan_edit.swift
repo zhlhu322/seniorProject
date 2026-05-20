@@ -22,6 +22,13 @@ struct cusPlan_edit: View {
 
     @State private var allDetails: [ExerciseDetail] = []
     @State private var selectedExercise: [SelectedExerciseItem] = []
+    @FocusState private var focusedField: ExerciseInputField?
+
+    private enum ExerciseInputField: Hashable {
+        case sets(String)
+        case reps(String)
+        case seconds(String)
+    }
 
     private var equipmentList: [String] {
         let equipments: [String] = selectedExercise.map { $0.detail.equipment }
@@ -33,18 +40,24 @@ struct cusPlan_edit: View {
     private var customWorkoutPlan: WorkoutPlan {
         WorkoutPlan(
             name: "自訂組合",
-            details: selectedExercise.map { item in
-                PlanDetails(
-                    id: item.detail.id,
-                    name: item.detail.name,
-                    sets: Int(item.setsText) ?? 1,
-                    targetCount: item.detail.isTimedExercise ? nil : (Int(item.repsText) ?? 5),
-                    targetTime: item.detail.isTimedExercise ? (Int(item.secondsText) ?? 30) : nil,
-                    rest_seconds: 10,
-                    lottie_url: item.detail.lottie_url,
-                    image_name: item.detail.image_name
-                )
+            details: selectedExercise.flatMap { item in
+                let setCount = max(Int(item.setsText) ?? 1, 1)
+                let detail = makePlanDetail(from: item, setCount: setCount)
+                return Array(repeating: detail, count: setCount)
             }
+        )
+    }
+
+    private func makePlanDetail(from item: SelectedExerciseItem, setCount: Int) -> PlanDetails {
+        PlanDetails(
+            id: item.detail.id,
+            name: item.detail.name,
+            sets: setCount,
+            targetCount: item.detail.isTimedExercise ? nil : (Int(item.repsText) ?? 5),
+            targetTime: item.detail.isTimedExercise ? (Int(item.secondsText) ?? 30) : nil,
+            rest_seconds: 10,
+            lottie_url: item.detail.lottie_url,
+            image_name: item.detail.image_name
         )
     }
 
@@ -65,6 +78,7 @@ struct cusPlan_edit: View {
                     TextField("組數", text: $item.setsText)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.center)
+                        .focused($focusedField, equals: .sets(item.id))
                         .frame(width: 52, height: 36)
                         .background(Color(.background))
                         .cornerRadius(10)
@@ -78,6 +92,7 @@ struct cusPlan_edit: View {
                     )
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
+                    .focused($focusedField, equals: item.detail.isTimedExercise ? .seconds(item.id) : .reps(item.id))
                     .frame(width: 52, height: 36)
                     .background(Color(.background))
                     .cornerRadius(10)
@@ -154,6 +169,10 @@ struct cusPlan_edit: View {
             .padding(.bottom, 10)
             .frame(maxWidth: .infinity, alignment: .center)
             .background(Color(.background))
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            focusedField = nil
         }
         .navigationTitle("編輯組合")
         .navigationBarBackButtonHidden()

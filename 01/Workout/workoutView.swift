@@ -20,6 +20,14 @@ struct workoutView: View {
         plan.details[exerciseIndex]
     }
 
+    private var currentSetNumber: Int {
+        plan.details.prefix(exerciseIndex + 1).filter { $0.id == currentExercise.id }.count
+    }
+
+    private var totalSetsForCurrentExercise: Int {
+        max(currentExercise.sets, plan.details.filter { $0.id == currentExercise.id }.count)
+    }
+
     private var lottieURL: URL? {
         URL(string: currentExercise.lottie_url)
     }
@@ -35,7 +43,7 @@ struct workoutView: View {
 //                        .foregroundColor(.white)
 //                        .frame(maxWidth: .infinity, alignment: .leading)
 //                }
-                Text(" \(setIndex+1)/\(currentExercise.sets)") // 顯示目前是第幾組
+                Text(" \(currentSetNumber)/\(totalSetsForCurrentExercise)") // 顯示目前是第幾組
                     .font(.system(size: 25))
                     .foregroundColor(Color(.white))
                     .frame(maxWidth: .infinity, alignment: .center)
